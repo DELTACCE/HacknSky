@@ -1,0 +1,25 @@
+/* FAQ accordion */
+details {
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 0;
+}
+summary {
+  cursor: pointer;
+  font: 500 1.15rem var(--serif);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+}
+summary::after {
+  content: '+';
+  color: var(--amber);
+  transition: transform 0.3s;
+}
+details[open] summary::after {
+  transform: rotate(45deg);
+}
+details p {
+  margin-top: 0.6rem;
+  color: #d9d2bd;
+  font-size: 0.95rem;
+}
