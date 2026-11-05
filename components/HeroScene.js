@@ -128,7 +128,7 @@ function Rig() {
 }
 
 // frameloop="demand" + our own rAF: renders only while the canvas is visible.
-function Driver({ mobile }) {
+function Driver({ mobile, low }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     let id;
@@ -146,7 +146,7 @@ function Driver({ mobile }) {
         // Keep the hero alive without running the GPU flat out: a low, fixed
         // cadence for the clouds, mist and water while the scene is idle.
         if (!s.reduced && s.smooth < 0.62) {
-          const gap = mobile ? 50 : 34;
+          const gap = low ? 66 : mobile ? 50 : 34;
           if (now - lastIdle > gap) {
             invalidate();
             lastIdle = now;
@@ -157,12 +157,25 @@ function Driver({ mobile }) {
     };
     id = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(id);
-  }, [invalidate, mobile]);
+  }, [invalidate, mobile, low]);
   return null;
+}
+
+function useLowPower(mobile) {
+  const [low, setLow] = useState(false);
+  useEffect(() => {
+    const cores = navigator.hardwareConcurrency || 4;
+    const mem = navigator.deviceMemory || 4;
+    setLow(mobile && (cores <= 4 || mem <= 4 || window.devicePixelRatio * window.innerWidth > 1200));
+  }, [mobile]);
+  return low;
 }
 
 export default function HeroScene() {
   const mobile = useIsMobile();
+  // A phone that reports few cores / little memory gets a lighter world and a
+  // 1x backbuffer: fill rate is what actually hurts on low-end hardware.
+  const low = useLowPower(mobile);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
@@ -176,16 +189,16 @@ export default function HeroScene() {
       frameloop="demand"
       flat
       shadows={mobile ? false : "soft"}
-      dpr={mobile ? [1, 1.25] : [1, 1.6]}
+      dpr={low ? [1, 1] : mobile ? [1, 1.25] : [1, 1.6]}
       camera={{ fov: 45, near: 0.5, far: 800, position: KEYS[0].pos }}
       gl={{ antialias: !mobile, powerPreference: "high-performance" }}
       onCreated={() => setShown(true)}
     >
       <Suspense fallback={null}>
-        <LowPolyEnvironment quality={mobile ? 0.55 : 1} />
+        <LowPolyEnvironment quality={low ? 0.4 : mobile ? 0.55 : 1} />
       </Suspense>
       <Rig />
-      <Driver mobile={mobile} />
+      <Driver mobile={mobile} low={low} />
     </Canvas>
   );
 }

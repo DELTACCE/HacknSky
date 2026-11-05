@@ -166,10 +166,10 @@ export default function LowPolyEnvironment({ quality = 1 }) {
       </ShadowCaster>
       <GodRays />
       <Mist />
-      <Fireflies count={quality < 1 ? 24 : 48} />
+      <Fireflies count={quality < 0.5 ? 12 : quality < 1 ? 24 : 48} />
       <CampfireSparks />
-      <Clouds count={quality < 1 ? 6 : 11} />
-      <Birds count={quality < 1 ? 4 : 9} />
+      <Clouds count={quality < 0.5 ? 3 : quality < 1 ? 6 : 11} />
+      <Birds count={quality < 0.5 ? 2 : quality < 1 ? 4 : 9} />
     </>
   );
 }
