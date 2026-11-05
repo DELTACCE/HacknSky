@@ -84,6 +84,12 @@ enquiry uses the same form; the event is not open for applications yet.
 - All geometry is procedural; there are no model or texture files. `lib/toon.js` provides the
   shared five-step toon gradient and inverted-hull ink outlines used by every prop, while the
   terrain and tree palettes use hard light bands instead of smooth PBR shading.
+- The background is built in depth: two unlit ridge silhouettes (`Backdrop.js`), a hard cel sun
+  with flat halos, merged cumulus clusters with pale ink edges, drifting bird flocks and a hill
+  carpet of instanced shrubs. The valley adds palms, river reeds, a plank footbridge, string
+  lights, a campfire and slide supports so the near ground has the same detail as the skyline.
+- The cable cabins have framed windows, doors, headlights, roof vents, an A-frame hanger and
+  undercarriage; the stations add railings, steps, a mounted sign, machinery and a bench.
 - The hero uses a directional cream wash plus a paper countdown chip so dark-green copy keeps its
   contrast even when it sits over the forest. The scene handles `prefers-reduced-motion`, a lost
   WebGL context and small screens.
@@ -111,7 +117,8 @@ components/
   Glyph.js             inline SVG pictograms
   PlaygroundArt.js     SVG water-park illustration
   CableCar.js · Clouds.js · Forest.js · Landmarks.js · LowPolyEnvironment.js · Mountain.js
-  Waterfall.js · primitives.js · RegisterButton.js · Countdown.js
+  Backdrop.js · Birds.js · Sun.js · Undergrowth.js · Waterfall.js · primitives.js
+  RegisterButton.js · Countdown.js
 lib/
   config.js            event facts and nav links
   content.js           all page copy

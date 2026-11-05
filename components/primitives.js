@@ -69,6 +69,7 @@ export const PALETTE = {
   wood: "#a9815b",
   woodDark: "#8a6445",
   glass: "#7cc4de",
+  glow: "#ffe9a6",
   ink: "#26332d",
 };
 

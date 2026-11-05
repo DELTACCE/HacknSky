@@ -15,25 +15,59 @@ import { Box, Cone, Cyl, PALETTE } from "./primitives";
 export function Gondola({ scale = 1 }) {
   return (
     <group scale={scale}>
-      {/* grip + hanger */}
-      <Box size={[0.9, 0.28, 0.42]} position={[0, 0, 0]} color={PALETTE.ink} />
-      <Box size={[0.14, 1.5, 0.14]} position={[0, -0.85, 0]} color={PALETTE.ink} />
-      {/* roof */}
-      <Cone radial={4} size={[1.75, 0.6, 1.25]} position={[0, -1.82, 0]} color={PALETTE.lime} />
-      {/* body */}
-      <Box size={[2.1, 1.25, 1.35]} position={[0, -2.78, 0]} color={PALETTE.paper} />
-      {/* lime belt */}
-      <Box size={[2.14, 0.12, 1.39]} position={[0, -3.28, 0]} color={PALETTE.lime} />
-      {/* floor */}
-      <Box size={[2.2, 0.14, 1.45]} position={[0, -3.45, 0]} color={PALETTE.emerald} />
-      {/* windows: front/back */}
+      {/* grip and A-frame hanger */}
+      <Box size={[1.12, 0.22, 0.5]} position={[0, 0, 0]} color={PALETTE.ink} />
+      <Cyl radial={6} size={[0.16, 0.42, 0.16]} position={[0, 0.2, 0]} color={PALETTE.stone} />
+      <Box size={[0.14, 1.15, 0.14]} position={[0, -0.72, 0]} color={PALETTE.ink} />
+      {[-1, 1].map((s) => (
+        <Box
+          key={s}
+          size={[0.11, 1.42, 0.11]}
+          position={[s * 0.63, -1.08, 0]}
+          rotation={[0, 0, s * 0.42]}
+          color={PALETTE.ink}
+        />
+      ))}
+      <Box size={[1.42, 0.12, 0.16]} position={[0, -1.68, 0]} color={PALETTE.ink} />
+
+      {/* roof: overhanging eave, lime crown, vent */}
+      <Box size={[2.36, 0.12, 1.62]} position={[0, -1.76, 0]} color={PALETTE.emerald} />
+      <Cone radial={4} size={[1.96, 0.56, 1.35]} position={[0, -2.02, 0]} color={PALETTE.lime} />
+      <Box size={[0.44, 0.16, 0.44]} position={[0, -1.61, 0]} color={PALETTE.ink} />
+
+      {/* body and belt */}
+      <Box size={[2.14, 1.32, 1.38]} position={[0, -2.86, 0]} color={PALETTE.paper} />
+      <Box size={[2.18, 0.13, 1.42]} position={[0, -3.4, 0]} color={PALETTE.lime} />
+      <Box size={[2.24, 0.14, 1.48]} position={[0, -3.55, 0]} color={PALETTE.emerald} />
+
+      {/* framed windows on the long sides */}
       {[1, -1].map((s) => (
         <group key={s}>
-          <Box size={[0.7, 0.55, 0.06]} position={[-0.52, -2.72, s * 0.69]} color={PALETTE.glass} />
-          <Box size={[0.7, 0.55, 0.06]} position={[0.52, -2.72, s * 0.69]} color={PALETTE.glass} />
-          <Box size={[0.06, 0.55, 0.8]} position={[s * 1.07, -2.72, 0]} color={PALETTE.glass} />
+          <Box size={[1.7, 0.82, 0.05]} position={[0, -2.8, s * 0.7]} color={PALETTE.ink} />
+          <Box size={[0.76, 0.62, 0.06]} position={[-0.45, -2.8, s * 0.715]} color={PALETTE.glass} matProps={{ emissive: PALETTE.glass, emissiveIntensity: 0.18 }} />
+          <Box size={[0.76, 0.62, 0.06]} position={[0.45, -2.8, s * 0.715]} color={PALETTE.glass} matProps={{ emissive: PALETTE.glass, emissiveIntensity: 0.18 }} />
+          <Box size={[0.03, 0.62, 0.02]} position={[0, -2.8, s * 0.725]} color={PALETTE.ink} />
         </group>
       ))}
+
+      {/* doors and windows at the ends */}
+      {[1, -1].map((s) => (
+        <group key={s}>
+          <Box size={[0.05, 0.92, 0.92]} position={[s * 1.09, -2.82, 0]} color={PALETTE.ink} />
+          <Box size={[0.06, 0.74, 0.36]} position={[s * 1.1, -2.8, -0.24]} color={PALETTE.glass} matProps={{ emissive: PALETTE.glass, emissiveIntensity: 0.18 }} />
+          <Box size={[0.06, 0.74, 0.36]} position={[s * 1.1, -2.8, 0.24]} color={PALETTE.glass} matProps={{ emissive: PALETTE.glass, emissiveIntensity: 0.18 }} />
+        </group>
+      ))}
+
+      {/* headlights, tail lights, route plate, bumper */}
+      {[-0.68, 0.68].map((x) => (
+        <Box key={x} size={[0.22, 0.13, 0.06]} position={[x, -3.16, 0.71]} color={PALETTE.glow} matProps={{ emissive: PALETTE.glow, emissiveIntensity: 0.7 }} />
+      ))}
+      <Box size={[0.7, 0.16, 0.03]} position={[0, -2.42, 0.71]} color={PALETTE.emerald} />
+      <Box size={[0.5, 0.08, 0.02]} position={[0, -2.42, 0.725]} color={PALETTE.lime} />
+      <Box size={[1.9, 0.12, 1.1]} position={[0, -3.64, 0]} color={PALETTE.ink} />
+      <Cyl radial={6} size={[0.12, 0.28, 0.12]} rotation={[Math.PI / 2, 0, 0]} position={[-0.55, -3.72, 0]} color={PALETTE.ink} />
+      <Cyl radial={6} size={[0.12, 0.28, 0.12]} rotation={[Math.PI / 2, 0, 0]} position={[0.55, -3.72, 0]} color={PALETTE.ink} />
     </group>
   );
 }
@@ -43,20 +77,69 @@ export function Gondola({ scale = 1 }) {
 // ---------------------------------------------------------------------------
 function Station({ x, y, z, outward }) {
   const topY = CABLE.a.y - CABLE.groundA; // pylon height above the pad
+  const hutX = outward * 3.2;
   return (
     <group position={[x, y, z]}>
-      {/* platform */}
-      <Box size={[5.4, 0.6, 5.4]} position={[outward * 2.4, 0, 0]} color={PALETTE.stone} />
+      {/* platform and edge stripe */}
+      <Box size={[5.8, 0.6, 5.6]} position={[outward * 2.4, 0, 0]} color={PALETTE.stone} />
+      <Box size={[5.8, 0.06, 0.16]} position={[outward * 2.4, 0.33, 2.72]} color={PALETTE.lime} />
+
       {/* hut */}
-      <Box size={[3.2, 2.2, 3.8]} position={[outward * 3.2, 1.4, 0]} color={PALETTE.paper} />
-      <Cone radial={4} size={[3.0, 1.1, 3.4]} position={[outward * 3.2, 3.05, 0]} color={PALETTE.clay} />
-      <Box size={[0.9, 1.3, 0.1]} position={[outward * 3.2, 1.05, 1.93]} color={PALETTE.lime} />
-      {/* pylon + crossbeam holding both lanes */}
+      <Box size={[3.2, 2.2, 3.8]} position={[hutX, 1.4, 0]} color={PALETTE.paper} />
+      <Box size={[3.34, 0.16, 3.94]} position={[hutX, 2.56, 0]} color={PALETTE.ink} />
+      <Cone radial={4} size={[3.15, 1.1, 3.5]} position={[hutX, 3.2, 0]} color={PALETTE.clay} />
+      <Box size={[0.9, 1.3, 0.1]} position={[hutX, 1.05, 1.93]} color={PALETTE.lime} />
+      <Box size={[0.06, 0.9, 0.7]} position={[hutX + outward * 1.63, 1.35, -0.6]} color={PALETTE.glass} />
+      <Box size={[0.08, 0.9, 0.7]} position={[hutX - outward * 1.63, 1.35, -0.6]} color={PALETTE.glass} />
+      {/* roof supports */}
+      {[-1, 1].map((sx) =>
+        [-1, 1].map((sz) => (
+          <Box
+            key={`${sx}${sz}`}
+            size={[0.1, 1.3, 0.1]}
+            position={[hutX + sx * 1.55, 1.95, sz * 1.85]}
+            color={PALETTE.woodDark}
+          />
+        ))
+      )}
+
+      {/* hanging station sign with abstract lettering */}
+      <Box size={[2.5, 0.55, 0.1]} position={[outward * 2.4, 2.35, 2.3]} color={PALETTE.emerald} />
+      {[-0.78, -0.35, 0.08, 0.55].map((dx, i) => (
+        <Box key={i} size={[0.22, 0.12, 0.03]} position={[outward * 2.4 + dx, 2.35, 2.36]} color={PALETTE.lime} />
+      ))}
+
+      {/* platform railing */}
+      {[-2.55, 2.55].map((rx) => (
+        <group key={rx}>
+          {[-2.0, -0.7, 0.7, 2.0].map((rz) => (
+            <Box key={rz} size={[0.08, 0.8, 0.08]} position={[outward * 2.4 + rx, 0.7, rz]} color={PALETTE.woodDark} />
+          ))}
+          <Box size={[0.08, 0.08, 4.1]} position={[outward * 2.4 + rx, 1.05, 0]} color={PALETTE.woodDark} />
+        </group>
+      ))}
+
+      {/* steps down to the pad */}
+      {[0, 1, 2].map((i) => (
+        <Box
+          key={i}
+          size={[2.2, 0.18, 0.6]}
+          position={[outward * 2.4, 0.24 - i * 0.16, 2.9 + i * 0.55]}
+          color={PALETTE.stone}
+        />
+      ))}
+
+      {/* pylon, crossbeam and sheaves */}
       <Box size={[0.5, topY, 0.5]} position={[0, topY / 2, 0]} color={PALETTE.sage} />
       <Box size={[0.4, 0.3, LANE_GAP + 1.4]} position={[0, topY + 0.1, 0]} color={PALETTE.ink} />
-      {/* sheave wheels */}
+      <Box size={[0.9, 0.22, 0.22]} position={[0, topY - 0.45, 0]} color={PALETTE.ink} />
       <Cyl radial={8} size={[0.32, 0.12, 0.32]} rotation={[Math.PI / 2, 0, 0]} position={[0, topY - 0.12, LANE_GAP / 2]} color={PALETTE.ink} />
       <Cyl radial={8} size={[0.32, 0.12, 0.32]} rotation={[Math.PI / 2, 0, 0]} position={[0, topY - 0.12, -LANE_GAP / 2]} color={PALETTE.ink} />
+
+      {/* machinery and a bench under the hut */}
+      <Cyl radial={10} size={[0.5, 0.22, 0.5]} rotation={[Math.PI / 2, 0, 0]} position={[outward * 1.3, 1.0, -1.5]} color={PALETTE.clay} />
+      <Box size={[1.1, 0.12, 0.4]} position={[hutX, 0.62, -2.0]} color={PALETTE.wood} />
+      <Box size={[1.1, 0.5, 0.08]} position={[hutX, 0.85, -2.2]} color={PALETTE.woodDark} />
     </group>
   );
 }

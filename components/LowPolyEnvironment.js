@@ -14,6 +14,10 @@ import Waterfall from "./Waterfall";
 import Clouds from "./Clouds";
 import CableCar from "./CableCar";
 import Landmarks from "./Landmarks";
+import Backdrop from "./Backdrop";
+import Birds from "./Birds";
+import Sun from "./Sun";
+import Undergrowth from "./Undergrowth";
 
 const DAY_HORIZON = new THREE.Color("#f4f5dc");
 const DAY_TOP = new THREE.Color("#79c7e8");
@@ -77,13 +81,16 @@ export default function LowPolyEnvironment({ quality = 1 }) {
         <sphereGeometry args={[1, 24, 16]} />
       </mesh>
 
+      <Backdrop />
+      <Sun />
       <mesh geometry={terrain} material={terrainMat} />
       <Mountain />
       <Forest count={Math.round(900 * quality)} seed={3} />
       <Waterfall />
       <Landmarks />
       <CableCar driveWithScroll />
-      <Clouds count={quality < 1 ? 5 : 8} />
+      <Clouds count={quality < 1 ? 6 : 11} />
+      <Birds count={quality < 1 ? 4 : 9} />
     </>
   );
 }
