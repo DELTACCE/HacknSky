@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --forest: #1f5130;
+  --emerald: #0b3d2e;
+  --sage: #8fa98a;
+  --sky: #bfe3f2;
+  --paper: #f6f2e8;
+  --lime: #b8f04a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+section[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary:focus-visible {
+  outline: 2px solid var(--emerald);
+  outline-offset: 4px;
+}
+
+body {
+  background: var(--paper);
+  color: var(--emerald);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.hero-title {
+  text-shadow: 0 2px 34px rgba(246, 242, 232, 0.5);
+}
+.hero-tagline {
+  text-shadow: 0 1px 20px rgba(246, 242, 232, 0.45);
+}
+
+.display {
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn-lime {
+  background: var(--lime);
+  color: var(--emerald);
+}
+.btn-ghost {
+  background: rgba(246, 242, 232, 0.16);
+  color: var(--paper);
+}
+.btn-ghost:hover {
+  background: rgba(246, 242, 232, 0.28);
+}
+.btn-outline {
+  background: rgba(246, 242, 232, 0.82);
+  color: var(--emerald);
+}
+.btn-outline:hover {
+  background: var(--paper);
+}
+.btn-dark {
+  background: var(--emerald);
+  color: var(--paper);
+}
+
+.facet {
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---- WebGL layer ---------------------------------------------------- */
+.scene-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, #bfe3f2 0%, #eef3e6 58%, #8fa98a 100%);
+}
+.scene-canvas {
+  position: absolute !important;
+  inset: 0;
+  transition: opacity 1.2s ease;
+}
+
+/* ---- content surfaces ------------------------------------------------ */
+.panel {
+  background: rgba(246, 242, 232, 0.94);
+  color: var(--emerald);
+  padding: clamp(1.4rem, 3vw, 2.4rem);
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
+}
+.card {
+  position: relative;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(11, 61, 46, 0.16);
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+.card-dark {
+  background: rgba(246, 242, 232, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(246, 242, 232, 0.22);
+}
+.section-title {
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  font-size: clamp(2.4rem, 6.4vw, 5.5rem);
+}
+.dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  transform: rotate(45deg);
+  background: var(--lime);
+  outline: 1px solid rgba(11, 61, 46, 0.45);
+  flex: none;
+}
+
+/* ---- map ------------------------------------------------------------- */
+.map-label {
+  display: inline-block;
+  padding: 0.22rem 0.55rem;
+  background: var(--paper);
+  color: var(--emerald);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1px rgba(11, 61, 46, 0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.map-label.is-active {
+  background: var(--lime);
+  transform: scale(1.12);
+}
+.field {
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--emerald);
+  font-size: 1rem; /* 16px: stops iOS zooming on focus */
+  box-shadow: inset 0 0 0 1px rgba(11, 61, 46, 0.3);
+}
+.field:focus {
+  outline: 2px solid var(--emerald);
+  outline-offset: 1px;
+}
