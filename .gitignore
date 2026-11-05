@@ -6,3 +6,4 @@ out
 .screens
 *.log
 .DS_Store
+.vercel
