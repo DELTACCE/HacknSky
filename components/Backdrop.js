@@ -73,6 +73,18 @@ export default function Backdrop() {
         }),
         material: new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, side: THREE.DoubleSide }),
       },
+      {
+        geometry: buildRidge({
+          width: 430,
+          baseY: -30,
+          height: 78,
+          z: -132,
+          seed: 15.8,
+          bottom: "#6f8878",
+          top: "#a7bcaf",
+        }),
+        material: new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, side: THREE.DoubleSide }),
+      },
     ],
     []
   );

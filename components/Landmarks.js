@@ -8,6 +8,8 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { facet, outlineMaterial, toonVertexColors } from "@/lib/toon";
 import { Box, Cone, Cyl, PALETTE, Rock, mat } from "./primitives";
 import { createWaterMaterial } from "@/lib/shaders";
+import StaticBatch from "./StaticBatch";
+import { GroundBlob } from "./GroundBlob";
 
 const pad = (id) => PADS.find((p) => p.id === id);
 
@@ -15,6 +17,7 @@ export function Venue() {
   const p = pad("venue");
   return (
     <group position={[p.x, padHeightOf("venue"), p.z]}>
+      <GroundBlob radius={6.1} opacity={0.15} />
       {/* foundation */}
       <Box size={[9.4, 0.8, 7.4]} position={[0.8, 0, 0]} color={PALETTE.stone} />
       {/* main hall: plaster walls under a tiled Kerala hip roof */}
@@ -139,6 +142,7 @@ export function WaterPark() {
   useEffect(() => () => water.dispose(), [water]);
   return (
     <group position={[p.x, padHeightOf("waterpark"), p.z]}>
+      <GroundBlob radius={8.6} opacity={0.13} />
       <Cyl radial={10} size={[8.3, 0.8, 8.3]} position={[0, 0, 0]} color={PALETTE.stone} />
       {/* wave pool */}
       <Cyl radial={9} size={[4.3, 0.5, 4.3]} position={[0, 0.65, 0]} color={PALETTE.paper} />
@@ -231,6 +235,7 @@ export function FallsViewpoint() {
   const p = pad("falls");
   return (
     <group position={[p.x, padHeightOf("falls"), p.z]}>
+      <GroundBlob radius={2.5} opacity={0.14} />
       <Box size={[3.4, 0.2, 2.4]} position={[0, 0.2, 0]} color={PALETTE.wood} />
       {[-1.6, 1.6].map((x) =>
         [-1.1, 1.1].map((z) => (
@@ -330,8 +335,9 @@ function Bridge({ z = 16 }) {
       {[-4.15, 4.15].map((x) => (
         <group key={x}>
           {[-1.18, 1.18].map((pz) => (
-            <Box key={pz} size={[0.12, 1.15, 0.12]} position={[x, 0.85, pz]} color={PALETTE.woodDark} />
+            <Box key={pz} size={[0.14, 1.55, 0.14]} position={[x, -0.32, pz]} color={PALETTE.woodDark} />
           ))}
+          <Box size={[1.15, 0.26, 2.7]} position={[x, -1.03, 0]} color={PALETTE.stone} />
           <Box size={[0.1, 0.1, 2.5]} position={[x, 1.35, 0]} color={PALETTE.woodDark} />
         </group>
       ))}
@@ -391,10 +397,12 @@ function Reeds({ count = 34, seed = 8 }) {
 export default function Landmarks() {
   return (
     <group>
-      <Venue />
-      <WaterPark />
-      <FallsViewpoint />
-      <Bridge z={4} />
+      <StaticBatch name="landmarks">
+        <Venue />
+        <WaterPark />
+        <FallsViewpoint />
+        <Bridge z={4} />
+      </StaticBatch>
       <Palm x={11} z={18.5} scale={1.3} lean={0.7} hue={0.4} />
       <Palm x={21.5} z={15.5} scale={1.4} lean={-0.5} hue={1.2} />
       <Palm x={11.5} z={4.0} scale={1.0} lean={0.4} hue={2.0} />

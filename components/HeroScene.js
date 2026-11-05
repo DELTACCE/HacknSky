@@ -14,7 +14,7 @@ import LowPolyEnvironment from "./LowPolyEnvironment";
 const KEYS = [
   { pos: [3, 17, 47], tgt: [0, 11, -12] },
   { pos: [10, 14.5, 20], tgt: [-2, 13, -26] },
-  { pos: [-3, 12, 10], tgt: [6, 10, -2] },
+  { pos: [0, 15, 38], tgt: [0, 10, -4] },
   { pos: [0, 28, 54], tgt: [0, 9, -18] },
 ];
 
@@ -100,25 +100,36 @@ function Rig() {
 }
 
 // frameloop="demand" + our own rAF: renders only while the canvas is visible.
-function Driver() {
+function Driver({ mobile }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     let id;
     let warm = 4;
     let last = -1;
-    const loop = () => {
+    let lastIdle = 0;
+    const loop = (now) => {
       const s = scrollState;
       if (s.active && !document.hidden) {
         const moved = Math.abs(s.progress - last) > 1e-4 || Math.abs(s.progress - s.smooth) > 1e-4;
         if (!s.reduced || moved || warm > 0) invalidate();
         last = s.progress;
         if (warm > 0) warm--;
+
+        // Keep the hero alive without running the GPU flat out: a low, fixed
+        // cadence for the clouds, mist and water while the scene is idle.
+        if (!s.reduced && s.smooth < 0.62) {
+          const gap = mobile ? 50 : 34;
+          if (now - lastIdle > gap) {
+            invalidate();
+            lastIdle = now;
+          }
+        }
       }
       id = requestAnimationFrame(loop);
     };
     id = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(id);
-  }, [invalidate]);
+  }, [invalidate, mobile]);
   return null;
 }
 
@@ -146,7 +157,7 @@ export default function HeroScene() {
         <LowPolyEnvironment quality={mobile ? 0.55 : 1} />
       </Suspense>
       <Rig />
-      <Driver />
+      <Driver mobile={mobile} />
     </Canvas>
   );
 }

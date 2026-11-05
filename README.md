@@ -85,7 +85,7 @@ enquiry uses the same form; the event is not open for applications yet.
   asset payload or licence obligations. `lib/toon.js` provides the shared four-step toon gradient
   and inverted-hull ink outlines used by every prop, while the terrain and tree palettes use hard
   light bands instead of smooth PBR shading.
-- The background is built in depth: two unlit ridge silhouettes (`Backdrop.js`), a hard cel sun
+- The background is built in depth: three unlit ridge silhouettes (`Backdrop.js`), a hard cel sun
   with flat halos, merged cumulus clusters with pale ink edges, drifting bird flocks and a hill
   carpet of instanced shrubs. The valley adds curved coconut palms, river reeds, a plank
   footbridge, string lights, a campfire with rising sparks, wildflowers and slide supports so the
@@ -97,7 +97,11 @@ enquiry uses the same form; the event is not open for applications yet.
   blossom trees, each with random rotation, scale and tint. The buildings use terracotta hip
   roofs, deep eaves, wooden verandas, lanterns and bunting; the cable cabins have framed windows,
   doors, headlights, roof vents, an A-frame hanger and undercarriage, while the stations add
-  tiered roofs, railings, steps, a mounted sign, machinery and a bench.
+  tiered roofs, railings, steps, a mounted sign, machinery and a bench. The cable itself is one
+  mechanical system: two sagging lines run from sheave to sheave, two intermediate towers support
+  both lines, each grip turns to the local cable tangent while the cabin stays plumb, and terminal
+  backstays tie the pylon head into a machine house. The bridge, palms, reeds and station platforms
+  are seated on the shared terrain height so nothing floats.
 - The stream, pool and lazy river share a stylised water shader with scrolling noise, foam bands,
   edge lace and warm sun glints. The hero keeps the world visible with a localised dark scrim and
   a frosted information panel rather than a full-width cream wash; the destination and cable-car
@@ -127,7 +131,7 @@ components/
   PlaygroundArt.js     SVG water-park illustration
   CableCar.js · Clouds.js · Forest.js · Landmarks.js · LowPolyEnvironment.js · Mountain.js
   Backdrop.js · Birds.js · Sun.js · Undergrowth.js · Flowers.js · Waterfall.js · primitives.js
-  Mist.js · Fireflies.js · GodRays.js · CampfireSparks.js
+  Mist.js · Fireflies.js · GodRays.js · CampfireSparks.js · StaticBatch.js · GroundBlob.js
   RegisterButton.js · Countdown.js
 lib/
   config.js            event facts and nav links
@@ -145,7 +149,11 @@ lib/
 - The 3D bundle is lazy; first-load JS is around 141 kB and every model is generated in code, so
   the scene adds no model or texture download. The scene pauses when covered by opaque sections,
   drops tree/cloud counts and shadow maps on small screens, and limits DPR to 1.6 on desktop and
-  1.25 on mobile.
+  1.25 on mobile. Static props are merged per material by `StaticBatch.js`; the valley render fell
+  from 708 to 187 draw calls on desktop and 435 to 143 on mobile without changing the triangle
+  budget. Desktop framing keeps both cable terminals in view; portrait framing uses a wider lens
+  and a pulled-back camera. Clouds, mist and water animate on a low, fixed idle cadence in the
+  hero, then run at full rate while scrolling; reduced-motion keeps the scene still.
 - Hero contrast was measured from rendered frames: cream headline at least 3.4:1 (large text),
   tagline at least 4.2:1 (large text), body copy 5.7:1 or better, and nav links about 6.4:1.
 - The form never fakes a successful submission; its status is announced with `role="status"`.
