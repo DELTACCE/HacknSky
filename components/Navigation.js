@@ -8,10 +8,10 @@ function Logo() {
   return (
     <a href="#top" className="flex items-center gap-2.5" aria-label="HacknSky, back to top">
       <svg width="30" height="24" viewBox="0 0 30 24" aria-hidden="true">
-        <polygon points="0,22 10,5 17,22" fill="#1f5130" />
-        <polygon points="8,22 19,2 30,22" fill="#0b3d2e" />
-        <polygon points="19,2 23.5,10 19,8.5 15,10" fill="#f6f2e8" />
-        <polygon points="3,4 7,0 11,4 7,8" fill="#b8f04a" />
+        <polygon points="0,22 10,5 17,22" fill="currentColor" opacity="0.55" />
+        <polygon points="8,22 19,2 30,22" fill="currentColor" />
+        <polygon points="19,2 23.5,10 19,8.5 15,10" fill="currentColor" opacity="0.7" />
+        <polygon points="3,4 7,0 11,4 7,8" fill="#c6f04e" />
       </svg>
       <span className="text-lg font-bold tracking-tight">HacknSky</span>
     </a>
@@ -58,10 +58,13 @@ export default function Navigation() {
     };
   }, [open]);
 
-  const bar = scrolled || open ? "bg-paper border-b border-emerald/10" : "bg-transparent";
+  const solid = scrolled || open;
+  const bar = solid
+    ? "border-b border-emerald/10 bg-paper/95 text-emerald backdrop-blur-md"
+    : "bg-gradient-to-b from-ink/82 via-ink/42 to-transparent text-cream backdrop-blur-[2px]";
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 text-emerald transition-colors duration-300 ${bar}`}>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${bar}`}>
       <nav
         className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 sm:px-10"
         aria-label="Primary"
@@ -77,7 +80,7 @@ export default function Navigation() {
                   href={l.href}
                   aria-current={on ? "true" : undefined}
                   className={`relative py-1 text-sm font-medium transition-opacity ${
-                    on ? "opacity-100" : "opacity-70 hover:opacity-100"
+                    on ? "opacity-100" : "opacity-85 hover:opacity-100"
                   }`}
                 >
                   {l.label}
@@ -93,7 +96,7 @@ export default function Navigation() {
         </ul>
 
         <div className="flex items-center gap-3">
-          <RegisterButton className="btn btn-dark !py-2.5 !px-5 text-sm">Register</RegisterButton>
+          <RegisterButton className="btn btn-lime !py-2.5 !px-5 text-sm">Register</RegisterButton>
           <button
             type="button"
             className="grid h-10 w-10 place-items-center lg:hidden"
@@ -104,12 +107,12 @@ export default function Navigation() {
           >
             <span className="relative block h-3.5 w-6">
               <span
-                className={`absolute left-0 top-0 h-0.5 w-6 bg-emerald transition-transform ${
+                className={`absolute left-0 top-0 h-0.5 w-6 bg-current transition-transform ${
                   open ? "translate-y-[6px] rotate-45" : ""
                 }`}
               />
               <span
-                className={`absolute bottom-0 left-0 h-0.5 w-6 bg-emerald transition-transform ${
+                className={`absolute bottom-0 left-0 h-0.5 w-6 bg-current transition-transform ${
                   open ? "-translate-y-[6px] -rotate-45" : ""
                 }`}
               />

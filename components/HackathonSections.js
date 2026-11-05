@@ -36,10 +36,10 @@ function Eyebrow({ n, children }) {
 // ---------------------------------------------------------------------------
 export function Destination() {
   return (
-    <section id="destination" data-scene className="relative h-[150svh] text-emerald">
-      <div className="sticky top-0 flex h-[100svh] items-center">
+    <section id="destination" data-scene className="relative h-[150svh] text-cream">
+      <div className="sticky top-0 flex h-[calc(100svh-4.5rem)] items-center">
         <div className={wrap}>
-          <div className="panel max-w-xl" data-reveal>
+          <div className="panel panel-dark max-w-xl" data-reveal>
             <Eyebrow n="01">The Destination</Eyebrow>
             <h2 className="section-title mt-5">Where the forest breaks open.</h2>
             <p className="mt-5 max-w-md text-base leading-relaxed sm:text-lg">
@@ -50,7 +50,7 @@ export function Destination() {
               Buses leave Irinjalakuda before the mist lifts. Forty students, one shared floor, and
               a valley that makes a lecture hall feel very far away.
             </p>
-            <dl className="mt-7 grid grid-cols-3 gap-4 border-t border-emerald/20 pt-5">
+            <dl className="mt-7 grid grid-cols-3 gap-4 border-t border-cream/20 pt-5">
               {FACTS.map((f) => (
                 <div key={f.label}>
                   <dt className="eyebrow opacity-60">{f.label}</dt>
@@ -58,7 +58,7 @@ export function Destination() {
                 </div>
               ))}
             </dl>
-            <ul className="mt-6 space-y-2 border-t border-emerald/20 pt-4 text-sm">
+            <ul className="mt-6 space-y-2 border-t border-cream/20 pt-4 text-sm">
               {ARRIVAL_BEATS.map((b) => (
                 <li key={b.time} className="flex gap-3">
                   <span className="w-12 flex-none font-semibold tabular-nums opacity-60">
@@ -83,10 +83,10 @@ export function Destination() {
 // ---------------------------------------------------------------------------
 export function CableCarSection() {
   return (
-    <section id="cable-car" data-scene className="relative h-[250svh] text-emerald">
-      <div className="sticky top-0 flex h-[100svh] items-end pb-8 sm:pb-14">
+    <section id="cable-car" data-scene className="relative h-[250svh] text-cream">
+      <div className="sticky top-0 flex h-[calc(100svh-4.5rem)] items-end pb-8 sm:pb-14">
         <div className={wrap}>
-          <div className="panel max-w-xl" data-reveal>
+          <div className="panel panel-dark max-w-xl" data-reveal>
             <Eyebrow n="02">The Cable Car</Eyebrow>
             <h2 className="section-title mt-5">The view you’re building for.</h2>
             <p className="mt-5 max-w-md text-base leading-relaxed sm:text-lg">
@@ -104,10 +104,10 @@ export function CableCarSection() {
             </ul>
             <div className="mt-7 flex items-center gap-3">
               <span className="eyebrow">West</span>
-              <span className="relative h-[3px] flex-1 bg-emerald/20" aria-hidden="true">
+              <span className="relative h-[3px] flex-1 bg-cream/20" aria-hidden="true">
                 <span
                   data-car-fill
-                  className="absolute inset-0 origin-left bg-emerald"
+                  className="absolute inset-0 origin-left bg-lime"
                   style={{ transform: "scaleX(0)" }}
                 />
               </span>

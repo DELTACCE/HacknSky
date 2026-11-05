@@ -14,9 +14,9 @@ import Forest from "./Forest";
 import Waterfall from "./Waterfall";
 import CableCar from "./CableCar";
 import Landmarks from "./Landmarks";
-import { Box, mat } from "./primitives";
+import { Box, PALETTE, mat } from "./primitives";
 
-const BG = "#cfe7f0";
+const BG = "#b9cdc9";
 const AREA = { x0: -42, x1: 42, z0: -42, z1: 24 };
 const GRID = { segW: 56, segD: 44 };
 const DEFAULT_TARGET = [0, 6, -8]; // module constant: a fresh array each render would reset the controls
@@ -72,7 +72,7 @@ function MapTerrain() {
         heightFn: heightAt,
       }),
       terrainMat: toonVertexColors(),
-      skirtMat: toon("#355a45", { side: THREE.DoubleSide }),
+      skirtMat: toon("#4a6a54", { side: THREE.DoubleSide }),
     };
   }, []);
 
@@ -117,7 +117,7 @@ function Marker({ loc, active, onSelect }) {
   return (
     <group position={[loc.x, baseY, loc.z]}>
       <Box size={[0.07, loc.lift, 0.07]} position={[0, loc.lift / 2, 0]} color="#0b3d2e" />
-      <mesh
+      <group
         ref={body}
         position={[0, loc.lift, 0]}
         onClick={(e) => {
@@ -130,15 +130,25 @@ function Marker({ loc, active, onSelect }) {
         }}
         onPointerOut={() => setHover(false)}
       >
-        <octahedronGeometry args={[1.15, 0]} />
-        <primitive
-          object={mat(loc.color, {
-            emissive: loc.color,
-            emissiveIntensity: 0.4,
-          })}
-          attach="material"
-        />
-      </mesh>
+        <mesh>
+          <octahedronGeometry args={[1.05, 0]} />
+          <primitive
+            object={mat(loc.color, {
+              emissive: loc.color,
+              emissiveIntensity: 0.55,
+            })}
+            attach="material"
+          />
+        </mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.28, 0.07, 6, 22]} />
+          <primitive object={mat(PALETTE.lime)} attach="material" />
+        </mesh>
+        <mesh position={[0, 0, 0.9]}>
+          <sphereGeometry args={[0.22, 8, 6]} />
+          <meshBasicMaterial color="#fbf5e7" />
+        </mesh>
+      </group>
       <Html
         position={[0, loc.lift + 2.6, 0]}
         center
@@ -206,10 +216,10 @@ export default function EventMapCanvas({ active, onSelect, inView }) {
       gl={{ antialias: !mobile }}
     >
       <color attach="background" args={[BG]} />
-      <fog attach="fog" args={[BG, 120, 280]} />
-      <hemisphereLight args={["#e6f4ff", "#5f7a58", 0.8]} />
-      <directionalLight position={[-40, 70, 40]} intensity={2.2} color="#fff4dc" />
-      <directionalLight position={[38, 26, -22]} intensity={0.5} color="#a9d9ea" />
+      <fog attach="fog" args={[BG, 95, 280]} />
+      <hemisphereLight args={["#c3dbe6", "#6b573f", 0.88]} />
+      <directionalLight position={[44, 62, -16]} intensity={2.05} color="#ffd7a0" />
+      <directionalLight position={[-32, 24, 24]} intensity={0.5} color="#9fc4d8" />
 
       <Suspense fallback={null}>
         <MapTerrain />
@@ -231,12 +241,16 @@ export default function EventMapCanvas({ active, onSelect, inView }) {
         enablePan={false}
         enableDamping
         dampingFactor={0.08}
-        minDistance={30}
-        maxDistance={115}
-        minPolarAngle={0.3}
-        maxPolarAngle={1.3}
+        zoomSpeed={0.8}
+        rotateSpeed={0.55}
+        minDistance={34}
+        maxDistance={96}
+        minPolarAngle={0.36}
+        maxPolarAngle={1.24}
+        minAzimuthAngle={-Math.PI * 0.72}
+        maxAzimuthAngle={Math.PI * 0.72}
         autoRotate={!reduced && !active}
-        autoRotateSpeed={0.35}
+        autoRotateSpeed={0.28}
         target={DEFAULT_TARGET}
       />
       <FocusRig active={active} />

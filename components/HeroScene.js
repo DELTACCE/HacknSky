@@ -136,6 +136,7 @@ export default function HeroScene() {
       style={{ opacity: shown ? 1 : 0 }}
       frameloop="demand"
       flat
+      shadows={mobile ? false : "soft"}
       dpr={mobile ? [1, 1.25] : [1, 1.6]}
       camera={{ fov: 45, near: 0.5, far: 800, position: KEYS[0].pos }}
       gl={{ antialias: !mobile, powerPreference: "high-performance" }}

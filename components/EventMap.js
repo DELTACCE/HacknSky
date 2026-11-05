@@ -58,7 +58,7 @@ export default function EventMap() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_320px]">
         <div
           ref={hostRef}
-          className="facet relative h-[420px] bg-[#d3e9f1] sm:h-[580px]"
+          className="facet relative h-[420px] bg-[#b9cdc9] sm:h-[580px]"
         >
           {mounted ? (
             <EventMapCanvas active={active} onSelect={setActive} inView={inView} />

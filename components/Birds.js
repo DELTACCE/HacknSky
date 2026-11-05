@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { mulberry32 } from "@/lib/noise";
 import { timeUniform } from "@/lib/shaders";
 
-const BIRD_COLOR = "#183b2c";
+const BIRD_COLOR = "#1d3a32";
 
 function Bird({ phase, radius, height, speed, size, tilt }) {
   const group = useRef();

@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { heightAt, padHeightOf, PADS, riverX } from "@/lib/world";
+import { colorize } from "@/lib/lowpoly";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { facet, outlineMaterial, toonVertexColors } from "@/lib/toon";
 import { Box, Cone, Cyl, PALETTE, Rock, mat } from "./primitives";
+import { createWaterMaterial } from "@/lib/shaders";
 
 const pad = (id) => PADS.find((p) => p.id === id);
 
@@ -13,15 +17,63 @@ export function Venue() {
     <group position={[p.x, padHeightOf("venue"), p.z]}>
       {/* foundation */}
       <Box size={[9.4, 0.8, 7.4]} position={[0.8, 0, 0]} color={PALETTE.stone} />
-      {/* main hall */}
+      {/* main hall: plaster walls under a tiled Kerala hip roof */}
       <Box size={[6, 2.6, 4]} position={[0, 1.7, 0]} color={PALETTE.paper} />
-      <Cone radial={4} size={[4.5, 1.7, 3.0]} position={[0, 3.85, 0]} color={PALETTE.forest} />
+      <Box size={[7.3, 0.14, 5.3]} position={[0, 3.06, 0]} color={PALETTE.woodDark} />
+      <Box size={[6.8, 0.12, 4.8]} position={[0, 3.15, 0]} color={PALETTE.clay} />
+      <Cone radial={4} size={[4.9, 1.85, 3.55]} position={[0, 3.95, 0]} color={PALETTE.clay} />
+      <Cone radial={4} size={[4.35, 0.13, 3.15]} position={[0, 4.3, 0]} color="#a34f36" />
+      <Cone radial={4} size={[3.55, 0.12, 2.55]} position={[0, 4.72, 0]} color="#a34f36" />
+      <Box size={[0.22, 0.18, 3.1]} position={[0, 5.16, 0]} color={PALETTE.woodDark} />
       <Box size={[2.4, 0.55, 0.1]} position={[0, 2.55, 2.06]} color={PALETTE.lime} />
-      <Box size={[0.9, 1.5, 0.1]} position={[-1.9, 1.15, 2.03]} color={PALETTE.emerald} />
-      <Box size={[1.1, 0.8, 0.1]} position={[1.5, 1.7, 2.03]} color={PALETTE.glass} />
+      <Box size={[0.98, 1.5, 0.1]} position={[-1.9, 1.15, 2.03]} color={PALETTE.woodDark} />
+      <Box size={[0.78, 1.3, 0.08]} position={[-1.9, 1.15, 2.09]} color={PALETTE.emerald} />
+      <Box size={[1.2, 0.92, 0.08]} position={[1.5, 1.66, 2.07]} color={PALETTE.woodDark} />
+      <Box size={[1.02, 0.76, 0.06]} position={[1.5, 1.66, 2.12]} color={PALETTE.glass} />
+
+      {/* veranda, wooden posts, railing and lanterns */}
+      <Box size={[6.5, 0.12, 1.9]} position={[0, 2.92, 2.78]} color={PALETTE.woodDark} />
+      {[-2.6, 2.6].map((x) => (
+        <Cyl key={x} radial={6} size={[0.09, 2.1, 0.09]} position={[x, 1.9, 3.62]} color={PALETTE.wood} />
+      ))}
+      <Box size={[5.4, 0.08, 0.08]} position={[0, 1.15, 3.62]} color={PALETTE.wood} />
+      {[-2.2, -1.1, 0, 1.1, 2.2].map((x) => (
+        <Box key={x} size={[0.07, 0.9, 0.07]} position={[x, 0.75, 3.62]} color={PALETTE.wood} />
+      ))}
+      {[-2.55, 2.55].map((x) => (
+        <group key={x} position={[x, 2.62, 2.72]}>
+          <Box size={[0.04, 0.3, 0.04]} position={[0, 0.15, 0]} color={PALETTE.ink} />
+          <Box size={[0.2, 0.28, 0.2]} position={[0, -0.05, 0]} color={PALETTE.clay} />
+          <mesh position={[0, -0.05, 0.11]}>
+            <sphereGeometry args={[0.1, 6, 5]} />
+            <meshBasicMaterial color={PALETTE.glow} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* bunting across the veranda */}
+      <Box size={[5.6, 0.025, 0.025]} position={[0, 3.28, 3.15]} color={PALETTE.ink} />
+      {Array.from({ length: 9 }).map((_, i) => {
+        const t = i / 8;
+        const x = -2.7 + t * 5.4;
+        const y = 3.24 - Math.sin(t * Math.PI) * 0.16;
+        const colors = [PALETTE.lime, PALETTE.cream, PALETTE.clay, PALETTE.sky];
+        return (
+          <Cone
+            key={i}
+            radial={3}
+            size={[0.15, 0.34, 0.04]}
+            position={[x, y - 0.16, 3.15]}
+            rotation={[0, 0, Math.PI]}
+            color={colors[i % colors.length]}
+          />
+        );
+      })}
+
       {/* annex */}
       <Box size={[2.4, 1.6, 2.6]} position={[4.2, 1.2, 0.4]} color={PALETTE.paper} />
-      <Cone radial={4} size={[1.8, 1.0, 1.95]} position={[4.2, 2.5, 0.4]} color={PALETTE.clay} />
+      <Box size={[2.9, 0.12, 3.1]} position={[4.2, 2.02, 0.4]} color={PALETTE.woodDark} />
+      <Cone radial={4} size={[1.85, 1.05, 2.05]} position={[4.2, 2.55, 0.4]} color={PALETTE.clay} />
       {/* flag */}
       <Cyl radial={5} size={[0.06, 4.5, 0.06]} position={[-3.3, 2.65, 1.9]} color={PALETTE.ink} />
       <Box size={[1.0, 0.6, 0.05]} position={[-2.8, 4.35, 1.9]} color={PALETTE.lime} />
@@ -30,6 +82,7 @@ export function Venue() {
       <Cone radial={6} size={[0.85, 1.1, 0.85]} position={[-3.0, 0.95, -3.7]} color={PALETTE.sky} />
 
       {/* campfire and string lights */}
+      <pointLight position={[3.6, 1.4, 2.9]} intensity={4.5} distance={14} decay={2} color="#ffb05a" />
       <group position={[3.6, 0.5, 2.9]}>
         <Cyl radial={5} size={[0.1, 0.9, 0.1]} rotation={[0, 0, Math.PI / 2]} color={PALETTE.woodDark} />
         <Cyl radial={5} size={[0.1, 0.9, 0.1]} rotation={[0, Math.PI / 3, Math.PI / 2]} color={PALETTE.wood} />
@@ -82,7 +135,8 @@ function Slide({ points, color }) {
 
 export function WaterPark() {
   const p = pad("waterpark");
-  const water = mat(PALETTE.water, { emissive: PALETTE.water, emissiveIntensity: 0.18 });
+  const water = useMemo(() => createWaterMaterial(), []);
+  useEffect(() => () => water.dispose(), [water]);
   return (
     <group position={[p.x, padHeightOf("waterpark"), p.z]}>
       <Cyl radial={10} size={[8.3, 0.8, 8.3]} position={[0, 0, 0]} color={PALETTE.stone} />
@@ -192,46 +246,66 @@ export function FallsViewpoint() {
   );
 }
 
+function buildPalmGeometry({ lean = 0, hue = 0 }) {
+  const parts = [];
+  const add = (geo, color) => {
+    if (geo.index) {
+      const flat = geo.toNonIndexed();
+      geo.dispose();
+      geo = flat;
+    }
+    colorize(geo, color);
+    parts.push(geo);
+  };
+
+  for (let i = 0; i < 6; i++) {
+    const t = i / 5;
+    const g = new THREE.CylinderGeometry(0.13 - i * 0.012, 0.17 - i * 0.012, 0.82, 7, 1);
+    g.translate(lean * (t * t) * 0.9, 0.4 + i * 0.78, 0);
+    add(g, i % 2 ? "#6e4a36" : "#7d573d");
+  }
+
+  const crownY = 4.35;
+  const crownX = lean * 0.9;
+  const fronds = 9;
+  for (let f = 0; f < fronds; f++) {
+    const a = (f / fronds) * Math.PI * 2 + hue;
+    const droop = -0.42 - (f % 3) * 0.1;
+    for (let seg = 0; seg < 3; seg++) {
+      const len = 0.95 - seg * 0.12;
+      const width = 0.46 * (1 - seg * 0.23);
+      const radius = 0.42 + seg * 0.82;
+      const y = crownY + 0.06 - seg * seg * 0.16;
+      const g = new THREE.BoxGeometry(len, 0.07, width);
+      g.rotateZ(droop + seg * 0.04);
+      g.rotateY(-a);
+      g.translate(crownX + Math.cos(a) * radius, y, Math.sin(a) * radius);
+      add(g, seg === 2 ? (f % 2 ? "#9aad56" : "#7e994b") : f % 2 ? "#5c8249" : "#4d7343");
+    }
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const a = hue + i * 2.1;
+    const g = new THREE.IcosahedronGeometry(0.16, 0);
+    g.translate(crownX + Math.cos(a) * 0.28, crownY - 0.24, Math.sin(a) * 0.28);
+    add(g, "#6b4a33");
+  }
+
+  const merged = mergeGeometries(parts, false);
+  parts.forEach((g) => g.dispose());
+  return facet(merged);
+}
+
 function Palm({ x, z, scale = 1, lean = 0, hue = 0 }) {
   const base = heightAt(x, z);
-  const top = 4.0;
+  const geometry = useMemo(() => buildPalmGeometry({ lean, hue }), [lean, hue]);
+  const material = useMemo(() => toonVertexColors(), []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
   return (
     <group position={[x, base, z]} scale={scale}>
-      {[0, 1, 2, 3, 4].map((i) => (
-        <Cyl
-          key={i}
-          radial={6}
-          size={[0.16 - i * 0.018, 0.85, 0.16 - i * 0.018]}
-          position={[lean * i * 0.09, 0.4 + i * 0.8, 0]}
-          rotation={[0, 0, lean * 0.05]}
-          color={i % 2 ? PALETTE.woodDark : PALETTE.wood}
-        />
-      ))}
-      <Cyl radial={5} size={[0.2, 0.28, 0.2]} position={[lean * 0.45, top - 0.1, 0]} color={PALETTE.forest} />
-      {Array.from({ length: 8 }).map((_, i) => {
-        const a = (i / 8) * Math.PI * 2 + hue;
-        const droop = -0.3 - (i % 3) * 0.08;
-        return (
-          <Box
-            key={i}
-            size={[2.5 - (i % 2) * 0.25, 0.07, 0.5]}
-            position={[Math.cos(a) * 0.98 + lean * 0.45, top + 0.05, Math.sin(a) * 0.98]}
-            rotation={[0, -a, droop]}
-            color={i % 2 ? PALETTE.lime : PALETTE.forest}
-          />
-        );
-      })}
-      {[0, 1, 2].map((i) => {
-        const a = hue + i * 2.1;
-        return (
-          <Rock
-            key={i}
-            size={[0.16, 0.17, 0.16]}
-            position={[Math.cos(a) * 0.28 + lean * 0.45, top - 0.28, Math.sin(a) * 0.28]}
-            color={PALETTE.woodDark}
-          />
-        );
-      })}
+      <mesh geometry={geometry} material={material} />
+      <mesh geometry={geometry} material={outlineMaterial} scale={1.012} />
     </group>
   );
 }

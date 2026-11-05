@@ -86,8 +86,11 @@ function Station({ x, y, z, outward }) {
 
       {/* hut */}
       <Box size={[3.2, 2.2, 3.8]} position={[hutX, 1.4, 0]} color={PALETTE.paper} />
-      <Box size={[3.34, 0.16, 3.94]} position={[hutX, 2.56, 0]} color={PALETTE.ink} />
-      <Cone radial={4} size={[3.15, 1.1, 3.5]} position={[hutX, 3.2, 0]} color={PALETTE.clay} />
+      <Box size={[3.8, 0.14, 4.4]} position={[hutX, 2.52, 0]} color={PALETTE.woodDark} />
+      <Box size={[3.55, 0.12, 4.14]} position={[hutX, 2.58, 0]} color={PALETTE.clay} />
+      <Cone radial={4} size={[2.75, 1.15, 3.15]} position={[hutX, 3.12, 0]} color={PALETTE.clay} />
+      <Cone radial={4} size={[2.35, 0.1, 2.7]} position={[hutX, 3.68, 0]} color="#a34f36" />
+      <Box size={[0.16, 0.14, 2.5]} position={[hutX, 3.78, 0]} color={PALETTE.woodDark} />
       <Box size={[0.9, 1.3, 0.1]} position={[hutX, 1.05, 1.93]} color={PALETTE.lime} />
       <Box size={[0.06, 0.9, 0.7]} position={[hutX + outward * 1.63, 1.35, -0.6]} color={PALETTE.glass} />
       <Box size={[0.08, 0.9, 0.7]} position={[hutX - outward * 1.63, 1.35, -0.6]} color={PALETTE.glass} />
@@ -135,6 +138,18 @@ function Station({ x, y, z, outward }) {
       <Box size={[0.9, 0.22, 0.22]} position={[0, topY - 0.45, 0]} color={PALETTE.ink} />
       <Cyl radial={8} size={[0.32, 0.12, 0.32]} rotation={[Math.PI / 2, 0, 0]} position={[0, topY - 0.12, LANE_GAP / 2]} color={PALETTE.ink} />
       <Cyl radial={8} size={[0.32, 0.12, 0.32]} rotation={[Math.PI / 2, 0, 0]} position={[0, topY - 0.12, -LANE_GAP / 2]} color={PALETTE.ink} />
+
+      {/* lanterns on the platform */}
+      {[-2.2, 2.2].map((dx) => (
+        <group key={dx} position={[hutX + dx, 2.18, 1.9]}>
+          <Box size={[0.035, 0.24, 0.035]} position={[0, 0.12, 0]} color={PALETTE.ink} />
+          <Box size={[0.16, 0.22, 0.16]} position={[0, -0.05, 0]} color={PALETTE.clay} />
+          <mesh position={[0, -0.05, 0.09]}>
+            <sphereGeometry args={[0.075, 6, 5]} />
+            <meshBasicMaterial color={PALETTE.glow} />
+          </mesh>
+        </group>
+      ))}
 
       {/* machinery and a bench under the hut */}
       <Cyl radial={10} size={[0.5, 0.22, 0.5]} rotation={[Math.PI / 2, 0, 0]} position={[outward * 1.3, 1.0, -1.5]} color={PALETTE.clay} />

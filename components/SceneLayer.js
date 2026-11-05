@@ -41,6 +41,7 @@ export default function SceneLayer() {
   return (
     <div className="scene-layer" aria-hidden="true">
       {ready && <HeroScene />}
+      <div className="scene-grade" />
     </div>
   );
 }

@@ -6,7 +6,7 @@ const sans = Outfit({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata = {
   title: {
-    default: "HacknSky — Less ordinary. More altitude.",
+    default: "HacknSky",
     template: "%s · HacknSky",
   },
   description:
@@ -24,7 +24,7 @@ export const metadata = {
   ],
   authors: [{ name: EVENT.organiser }],
   openGraph: {
-    title: "HacknSky — Less ordinary. More altitude.",
+    title: "HacknSky",
     description:
       "A proposed two-day destination hackathon in Athirappilly, Kerala. 20 teams, one valley, and a ride down worth building for.",
     type: "website",
@@ -32,7 +32,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HacknSky — Less ordinary. More altitude.",
+    title: "HacknSky",
     description:
       "A proposed two-day destination hackathon in Athirappilly, Kerala. Build ideas. Defy gravity.",
   },
@@ -40,7 +40,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: "#f6f2e8",
+  themeColor: "#0b2b24",
   colorScheme: "light",
 };
 

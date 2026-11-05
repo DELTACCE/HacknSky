@@ -40,12 +40,12 @@ export default function Countdown({ tone = "dark", className = "" }) {
     <div
       role="timer"
       aria-label={`Time until ${EVENT.name} begins`}
-      className={`flex items-end gap-4 sm:gap-5 ${text} ${className}`}
+      className={`flex items-end gap-3 sm:gap-5 ${text} ${className}`}
     >
       {cells.map(([label, value], i) => (
-        <div key={label} className={`${i ? `border-l pl-4 sm:pl-5 ${rule}` : ""}`}>
-          <div className="display text-3xl tabular-nums sm:text-4xl">{ready ? value : "--"}</div>
-          <div className="eyebrow mt-1 opacity-70">{label}</div>
+        <div key={label} className={`${i ? `border-l pl-3 sm:pl-5 ${rule}` : ""}`}>
+          <div className="display text-4xl tabular-nums sm:text-5xl">{ready ? value : "--"}</div>
+          <div className="eyebrow mt-1 text-[0.68rem] opacity-80">{label}</div>
         </div>
       ))}
     </div>

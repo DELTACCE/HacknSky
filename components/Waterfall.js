@@ -7,15 +7,9 @@ import { buildRibbon, waterSample } from "@/lib/ribbon";
 import { createFlowMaterial, timeUniform } from "@/lib/shaders";
 import { FALL_CENTER, heightAt } from "@/lib/world";
 import { Rock } from "./primitives";
+import { softDiscTexture } from "@/lib/sprites";
 
-const PUFFS = 9;
-const puffGeo = new THREE.IcosahedronGeometry(1, 0);
-const puffMat = new THREE.MeshBasicMaterial({
-  color: "#ffffff",
-  transparent: true,
-  opacity: 0.55,
-  depthWrite: false,
-});
+const PUFFS = 12;
 
 // River + waterfall: one ribbon that follows the river line, hugs the
 // terrain and turns into a fast white sheet where it crosses the cliff.
@@ -32,6 +26,7 @@ export default function Waterfall({ zBack = -62, zFront = 28, rows = 220 }) {
     return { x: s.x, y: heightAt(s.x, FALL_CENTER + 3.6) + 1.1, z: s.z + 0.6 };
   }, []);
 
+  const puffTex = useMemo(() => softDiscTexture(), []);
   const puffSeeds = useMemo(
     () =>
       Array.from({ length: PUFFS }, (_, i) => ({
@@ -50,8 +45,8 @@ export default function Waterfall({ zBack = -62, zFront = 28, rows = 220 }) {
       const s = puffSeeds[i];
       const life = (t * 0.22 + s.phase) % 1;
       const k = Math.sin(life * Math.PI);
-      m.position.set(base.x + s.dx, base.y + life * 3.4, base.z + s.dz + life * 1.2);
-      m.scale.setScalar(0.2 + k * s.size);
+      m.position.set(base.x + s.dx, base.y + life * 3.9, base.z + s.dz + life * 1.4);
+      m.scale.setScalar(0.8 + k * s.size * 2.6);
     });
   });
 
@@ -68,12 +63,19 @@ export default function Waterfall({ zBack = -62, zFront = 28, rows = 220 }) {
       <mesh geometry={geometry} material={material} />
 
       {puffSeeds.map((_, i) => (
-        <mesh
+        <sprite
           key={i}
           ref={(el) => (puffs.current[i] = el)}
-          geometry={puffGeo}
-          material={puffMat}
-        />
+          scale={[1, 0.7, 1]}
+        >
+          <spriteMaterial
+            map={puffTex}
+            color="#f8efde"
+            transparent
+            opacity={0.3}
+            depthWrite={false}
+          />
+        </sprite>
       ))}
 
       {/* boulders at the plunge pool */}

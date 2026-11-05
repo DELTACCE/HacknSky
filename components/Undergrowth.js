@@ -15,7 +15,7 @@ export default function Undergrowth({ count = 150, seed = 31 }) {
 
   const instances = useMemo(() => {
     const rand = mulberry32(seed);
-    const colors = ["#5f9b58", "#77ad61", "#96bf70", "#4f8c54", "#b8f04a", "#d9754a"];
+    const colors = ["#557a4c", "#6c8d55", "#829b5f", "#456b48", "#c6f04e", "#b85c3e", "#d7a78c"];
     const out = [];
     let guard = 0;
     while (out.length < count && guard < count * 40) {

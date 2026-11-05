@@ -71,7 +71,7 @@ export default function Mountain() {
       {peaks.map((p, i) => (
         <group key={i} position={[p.x, -5, p.z]} rotation={[0, i * 0.9, 0]}>
           <mesh geometry={p.geometry} material={material} />
-          <mesh geometry={p.geometry} material={outlineMaterial} scale={1.02} />
+          <mesh geometry={p.geometry} material={outlineMaterial} scale={1.008} />
         </group>
       ))}
     </group>

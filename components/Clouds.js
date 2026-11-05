@@ -9,20 +9,20 @@ import { timeUniform } from "@/lib/shaders";
 import { facet, gradientMap } from "@/lib/toon";
 
 const SPAN = 300;
-const WHITE = new THREE.Color("#ffffff");
+const WHITE = new THREE.Color("#fff8e9");
 const SHADE = new THREE.Color("#b4d2d9");
 
 const cloudMaterial = new THREE.MeshToonMaterial({
   vertexColors: true,
   gradientMap,
-  emissive: "#e8f5f8",
-  emissiveIntensity: 0.16,
+  emissive: "#fff0d4",
+  emissiveIntensity: 0.22,
 });
 const cloudOutline = new THREE.MeshBasicMaterial({
-  color: "#7fa3aa",
+  color: "#9aafb3",
   side: THREE.BackSide,
   transparent: true,
-  opacity: 0.8,
+  opacity: 0.65,
 });
 
 // Merge each cloud's puffs into one geometry so a whole cloud is a single
