@@ -18,6 +18,12 @@ const KEYS = [
   { pos: [0, 28, 54], tgt: [0, 9, -18] },
 ];
 
+// While the cable-car section is pinned, the camera dollies from the wide
+// establishing shot into the east terminal. The pinned scroll is therefore a
+// real camera move, not a still frame with text over it.
+const CABLE_CLOSE_POS = new THREE.Vector3(8, 17, 35);
+const CABLE_CLOSE_TGT = new THREE.Vector3(3, 10, -4);
+
 const v3 = (a) => new THREE.Vector3(...a);
 
 function Rig() {
@@ -44,9 +50,10 @@ function Rig() {
   );
   const fovRef = useRef(0);
 
-  useFrame((_, dt) => {
+  useFrame((frame, dt) => {
     const s = scrollState;
     const d = Math.min(dt, 0.1);
+    const time = frame.clock.elapsedTime;
     s.smooth = s.reduced
       ? s.progress
       : THREE.MathUtils.damp(s.smooth, s.progress, 3.5, d);
@@ -73,13 +80,34 @@ function Rig() {
       tmp.tgt.lerp(tmp.car, w);
     }
 
+    // the pinned cable section dollies in and then holds: the last third of
+    // the pin is a settled shot of the terminal with the cabin arriving
+    const cableK =
+      THREE.MathUtils.smoothstep(stage, 2.02, 2.44) *
+      (1 - THREE.MathUtils.smoothstep(stage, 2.66, 2.98));
+    if (cableK > 0.001) {
+      tmp.pos.lerp(CABLE_CLOSE_POS, cableK * 0.85);
+      tmp.tgt.lerp(CABLE_CLOSE_TGT, cableK * 0.6);
+    }
+
     // portrait screens: wider lens and a camera pulled back
     const portrait = size.width / size.height < 0.9;
-    const fov = portrait ? 58 : 45;
-    if (fovRef.current !== fov) {
+    // a fast flick opens the lens slightly, which reads as speed
+    const flick = s.reduced ? 0 : Math.min(1.1, s.velocity * 0.016);
+    const fov = (portrait ? 58 : 45) - (portrait ? 0 : cableK * 1.5) + flick;
+    if (Math.abs(fovRef.current - fov) > 0.01) {
       fovRef.current = fov;
       camera.fov = fov;
       camera.updateProjectionMatrix();
+    }
+
+    // while the camera is parked on an anchor the world must not look frozen:
+    // a slow drift keeps the pinned sections alive without any scroll input
+    if (!s.reduced && s.dwell > 0.01) {
+      const k = s.dwell * 0.22;
+      tmp.pos.x += Math.sin(time * 0.34) * k;
+      tmp.pos.y += Math.cos(time * 0.27) * k * 0.45;
+      tmp.tgt.y += Math.sin(time * 0.21 + 1.2) * k * 0.3;
     }
     if (portrait) tmp.pos.sub(tmp.tgt).multiplyScalar(1.3).add(tmp.tgt);
 

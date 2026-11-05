@@ -36,7 +36,7 @@ function Eyebrow({ n, children }) {
 // ---------------------------------------------------------------------------
 export function Destination() {
   return (
-    <section id="destination" data-scene className="relative h-[150svh] text-cream">
+    <section id="destination" data-scene className="relative h-[120svh] text-cream sm:h-[140svh]">
       <div className="sticky top-0 flex h-[calc(100svh-4.5rem)] items-center">
         <div className={wrap}>
           <div className="panel panel-dark max-w-xl" data-reveal>
@@ -83,7 +83,7 @@ export function Destination() {
 // ---------------------------------------------------------------------------
 export function CableCarSection() {
   return (
-    <section id="cable-car" data-scene className="relative h-[250svh] text-cream">
+    <section id="cable-car" data-scene className="relative h-[180svh] text-cream sm:h-[220svh]">
       <div className="sticky top-0 flex h-[calc(100svh-4.5rem)] items-end pb-8 sm:pb-14">
         <div className={wrap}>
           <div className="panel panel-dark max-w-xl" data-reveal>
@@ -126,7 +126,7 @@ export function CableCarSection() {
 // ---------------------------------------------------------------------------
 export function Experience() {
   return (
-    <section id="experience" className="relative z-10 bg-paper py-24 text-emerald sm:py-32">
+    <section id="experience" className="scene-fade-in relative z-10 py-24 text-emerald sm:py-32">
       <div className={wrap}>
         <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-end">
           <div data-reveal>

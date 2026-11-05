@@ -22,6 +22,16 @@ export default function ScrollController() {
 
     const byId = (id) => document.getElementById(id);
     let anchors = null;
+    let lastY = window.scrollY;
+
+    // Each leg of the journey is eased independently, so the camera leaves and
+    // arrives at an anchor at zero speed. That is what makes a scroll journey
+    // read as a sequence of deliberate moves instead of one long slide.
+    const LEG_EASE = [1.8, 1.45, 1.2, 1.7];
+    const easeInOut = (t, p) =>
+      t < 0.5
+        ? 0.5 * Math.pow(2 * t, p)
+        : 1 - 0.5 * Math.pow(2 * (1 - t), p);
 
     const compute = () => {
       const hero = byId("top");
@@ -61,7 +71,8 @@ export default function ScrollController() {
           const [a, sa] = stops[i];
           const [b, sb] = stops[i + 1];
           if (sy <= b) {
-            stage = sa + ((sb - sa) * (sy - a)) / (b - a);
+            const t = Math.min(1, Math.max(0, (sy - a) / (b - a)));
+            stage = sa + (sb - sa) * easeInOut(t, LEG_EASE[i] || 1.4);
             break;
           }
         }
@@ -69,6 +80,20 @@ export default function ScrollController() {
       scrollState.stage = stage;
       scrollState.progress = stage / SCENE_STAGES;
       scrollState.active = !(sy >= anchors.cableBottom && sy + anchors.vh <= anchors.regTop);
+
+      // scroll speed, smoothed: lets the scene react to a flick vs a slow drag
+      const raw = Math.abs(sy - lastY);
+      lastY = sy;
+      scrollState.velocity += (Math.min(raw, 90) - scrollState.velocity) * 0.25;
+
+      // how parked are we? 1 while the camera sits on an anchor and only the
+      // copy moves, which is where a still frame would otherwise feel dead
+      const nearest = stops.reduce(
+        (best, [y, s]) => (Math.abs(s - stage) < Math.abs(best - stage) ? s : best),
+        0
+      );
+      const dist = Math.abs(stage - nearest);
+      scrollState.dwell = Math.max(0, 1 - dist / 0.35);
 
       // little station A -> B progress bar in the cable-car section
       const f = Math.min(1, Math.max(0, (stage - 2) / 0.7));
@@ -92,7 +117,7 @@ export default function ScrollController() {
     let fontsTimer;
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(() => {
-        fontsTimer = setTimeout(() => ScrollTrigger.refresh(), 50);
+        fontsTimer = setTimeout(() => ScrollTrigger.refresh(true), 50);
       });
     }
 
@@ -136,7 +161,7 @@ export default function ScrollController() {
           duration: 0.9,
           delay: Number(node.dataset.reveal) || 0,
           ease: "power3.out",
-          scrollTrigger: { trigger: node, start: "top 88%", once: true },
+          scrollTrigger: { trigger: node, start: "top 78%", once: true },
         });
       });
 
@@ -147,7 +172,7 @@ export default function ScrollController() {
           duration: 0.8,
           stagger: 0.08,
           ease: "power3.out",
-          scrollTrigger: { trigger: group, start: "top 86%", once: true },
+          scrollTrigger: { trigger: group, start: "top 76%", once: true },
         });
       });
     });
