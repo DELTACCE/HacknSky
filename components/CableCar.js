@@ -217,14 +217,14 @@ function MidTower({ x }) {
       <GroundBlob radius={1.35} opacity={0.13} />
       <Box size={[1.25, 0.36, 1.45]} position={[0, 0.18, 0]} color={PALETTE.stone} />
       <Box size={[0.34, h, 0.34]} position={[0, h / 2, 0]} color={PALETTE.sage} />
-      <Box size={[0.09, h * 0.62, 0.09]} position={[-0.3, h * 0.38, 0.24]} rotation={[0, 0, 0.55]} color={PALETTE.woodDark} />
-      <Box size={[0.09, h * 0.62, 0.09]} position={[0.3, h * 0.38, 0.24]} rotation={[0, 0, -0.55]} color={PALETTE.woodDark} />
+      {/* two straight legs instead of the crossed braces that read as a giant X */}
+      <Box size={[0.1, h * 0.7, 0.1]} position={[0.34, h * 0.35, 0.24]} color={PALETTE.woodDark} />
+      <Box size={[0.1, h * 0.7, 0.1]} position={[-0.34, h * 0.35, 0.24]} color={PALETTE.woodDark} />
       <Box size={[0.3, 0.22, LANE_GAP + 1.7]} position={[0, h - 0.12, 0]} color={PALETTE.ink} />
       {[-1, 1].map((s) => (
         <Cyl key={s} radial={8} size={[0.17, 0.13, 0.17]} rotation={[Math.PI / 2, 0, 0]} position={[0, h - 0.18, s * (LANE_GAP / 2)]} color={PALETTE.ink} />
       ))}
       <Box size={[0.82, 0.08, 0.08]} position={[0, h - 0.34, 0]} color={PALETTE.lime} />
-      <Box size={[0.12, 0.7, 0.12]} position={[0.46, h - brace, 0]} rotation={[0, 0, -0.7]} color={PALETTE.woodDark} />
     </group>
   );
 }
