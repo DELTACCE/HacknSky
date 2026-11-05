@@ -24,13 +24,13 @@ export default function Hero() {
             {EVENT.location} · {EVENT.dateLabel}
           </span>
         </p>
-        <h1 className="display hero-title mt-3 overflow-hidden pb-[0.14em] text-[clamp(2.9rem,11vw,10rem)]">
+        <h1 className="display hero-title mt-3 overflow-hidden pb-[0.14em] text-[clamp(2.7rem,9.2vw,8.2rem)]">
           <span className="block" data-hero-in>
             {EVENT.name}
           </span>
         </h1>
         <p
-          className="hero-tagline mt-3 max-w-2xl text-[clamp(1.1rem,2.05vw,1.7rem)] font-bold uppercase tracking-[0.12em]"
+          className="hero-tagline mt-3 max-w-2xl text-[clamp(1.05rem,1.8vw,1.5rem)] font-bold uppercase tracking-[0.12em]"
           data-hero-in
         >
           {EVENT.tagline}
@@ -38,21 +38,21 @@ export default function Hero() {
       </div>
 
       <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
-        <div className="hero-panel max-w-xl" data-hero-in>
-          <p className="text-2xl font-medium leading-tight sm:text-3xl">
+        <div className="hero-panel max-w-lg" data-hero-in>
+          <p className="text-xl font-medium leading-tight sm:text-2xl">
             {EVENT.subtitle}
           </p>
-          <p className="mt-3 max-w-md text-lg leading-relaxed text-cream/90 sm:text-xl">
+          <p className="mt-2.5 max-w-md text-base leading-relaxed text-cream/90 sm:text-lg">
             {EVENT.lead}
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-3">
             <RegisterButton className="btn btn-lime">Register interest</RegisterButton>
             <a href="#destination" className="btn btn-outline-light">
               Explore the experience
               <span aria-hidden="true">↓</span>
             </a>
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-cream/75">
+          <p className="mt-3.5 text-xs leading-relaxed text-cream/85 sm:text-sm">
             {EVENT.status}
           </p>
         </div>
