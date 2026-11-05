@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { buildPeakGeometry } from "@/lib/lowpoly";
 import { mulberry32 } from "@/lib/noise";
+import { outlineMaterial, toonVertexColors } from "@/lib/toon";
 
 // Distant faceted ranges that frame the valley. Colours fade into the fog,
 // which is what gives the scene its soft, layered depth.
@@ -55,33 +56,23 @@ export default function Mountain() {
       }),
     }));
 
-    const mat = new THREE.MeshStandardMaterial({
-      vertexColors: true,
-      flatShading: true,
-      roughness: 1,
-      metalness: 0,
-    });
-    return { peaks: built, material: mat };
+    return { peaks: built, material: toonVertexColors() };
   }, []);
 
   useEffect(
     () => () => {
       peaks.forEach((p) => p.geometry.dispose());
-      material.dispose();
     },
-    [peaks, material]
+    [peaks]
   );
 
   return (
     <group>
       {peaks.map((p, i) => (
-        <mesh
-          key={i}
-          geometry={p.geometry}
-          material={material}
-          position={[p.x, -5, p.z]}
-          rotation={[0, i * 0.9, 0]}
-        />
+        <group key={i} position={[p.x, -5, p.z]} rotation={[0, i * 0.9, 0]}>
+          <mesh geometry={p.geometry} material={material} />
+          <mesh geometry={p.geometry} material={outlineMaterial} scale={1.02} />
+        </group>
       ))}
     </group>
   );

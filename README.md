@@ -1,7 +1,7 @@
 # HacknSky
 
 Website for **HacknSky**, a _proposed_ two-day destination hackathon by DELTA as part of DATARA’27
-at Christ College of Engineering, Irinjalakuda. The site tells the story as a low-poly 3D journey
+at Christ College of Engineering, Irinjalakuda. The site tells the story as a cel-shaded, low-poly 3D journey
 through an imagined Athirappilly valley, then lays out the tracks, route, playground, map, awards
 and registration in plain editorial sections.
 
@@ -81,8 +81,12 @@ enquiry uses the same form; the event is not open for applications yet.
 - `lib/world.js` holds the shared height function, river line, building pads and cable layout, used
   by both the hero scene and the event map.
 - `components/EventMap*.js` is a second lazy canvas with orbit controls and clickable pins.
-- All geometry is procedural; there are no model or texture files. The scene handles
-  `prefers-reduced-motion`, a lost WebGL context and small screens.
+- All geometry is procedural; there are no model or texture files. `lib/toon.js` provides the
+  shared five-step toon gradient and inverted-hull ink outlines used by every prop, while the
+  terrain and tree palettes use hard light bands instead of smooth PBR shading.
+- The hero uses a directional cream wash plus a paper countdown chip so dark-green copy keeps its
+  contrast even when it sits over the forest. The scene handles `prefers-reduced-motion`, a lost
+  WebGL context and small screens.
 
 The cableway is a conceptual visualisation. It is not an existing cableway and not an exact Sky
 Storm replica.
@@ -112,7 +116,7 @@ lib/
   config.js            event facts and nav links
   content.js           all page copy
   world.js             shared world layout (height, river, pads, cable)
-  lowpoly.js · noise.js · ribbon.js · shaders.js
+  lowpoly.js · noise.js · ribbon.js · shaders.js · toon.js
   scrollState.js · hooks.js
 ```
 

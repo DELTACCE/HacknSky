@@ -21,7 +21,7 @@ export function Venue() {
       <Box size={[1.1, 0.8, 0.1]} position={[1.5, 1.7, 2.03]} color={PALETTE.glass} />
       {/* annex */}
       <Box size={[2.4, 1.6, 2.6]} position={[4.2, 1.2, 0.4]} color={PALETTE.paper} />
-      <Cone radial={4} size={[1.8, 1.0, 1.95]} position={[4.2, 2.5, 0.4]} color={PALETTE.emerald} />
+      <Cone radial={4} size={[1.8, 1.0, 1.95]} position={[4.2, 2.5, 0.4]} color={PALETTE.clay} />
       {/* flag */}
       <Cyl radial={5} size={[0.06, 4.5, 0.06]} position={[-3.3, 2.65, 1.9]} color={PALETTE.ink} />
       <Box size={[1.0, 0.6, 0.05]} position={[-2.8, 4.35, 1.9]} color={PALETTE.lime} />
@@ -90,7 +90,7 @@ export function WaterPark() {
       {/* umbrellas */}
       {[
         [-3.4, 6.9, PALETTE.lime],
-        [0, 7.4, PALETTE.paper],
+        [0, 7.4, PALETTE.clay],
         [3.4, 6.9, PALETTE.sky],
       ].map(([x, z, c], i) => (
         <group key={i} position={[x, 0, z]}>

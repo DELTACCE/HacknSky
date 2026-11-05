@@ -10,10 +10,7 @@ export default function Hero() {
       data-scene
       className="relative flex min-h-[100svh] flex-col justify-between px-5 pb-8 pt-24 text-emerald sm:px-10 sm:pb-10"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[44%] bg-gradient-to-t from-paper/95 via-paper/70 to-transparent sm:h-[40%]"
-      />
+      <div aria-hidden="true" className="hero-wash" />
       <div className="relative z-10 mx-auto w-full max-w-[1400px]">
         <p className="eyebrow flex flex-wrap items-center gap-x-3 gap-y-1" data-hero-in>
           <span className="inline-block h-2.5 w-2.5 rotate-45 bg-lime outline outline-1 outline-emerald/40" />
@@ -45,7 +42,7 @@ export default function Hero() {
           <p className="text-xl font-medium sm:text-2xl" data-hero-in>
             {EVENT.subtitle}
           </p>
-          <p className="mt-2 max-w-md text-sm leading-relaxed opacity-80 sm:text-base" data-hero-in>
+          <p className="mt-2 max-w-md text-sm leading-relaxed opacity-90 sm:text-base" data-hero-in>
             {EVENT.lead}
           </p>
           <div className="mt-5 flex flex-wrap gap-3" data-hero-in>
@@ -55,12 +52,12 @@ export default function Hero() {
               <span aria-hidden="true">↓</span>
             </a>
           </div>
-          <p className="mt-3 text-xs leading-relaxed opacity-75" data-hero-in>
+          <p className="mt-3 text-xs leading-relaxed opacity-85" data-hero-in>
             {EVENT.status}
           </p>
         </div>
 
-        <div data-hero-in>
+        <div className="hero-chip" data-hero-in>
           <Countdown />
         </div>
       </div>

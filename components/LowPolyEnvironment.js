@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { buildTerrainGeometry } from "@/lib/lowpoly";
 import { createSkyMaterial, FOG_COLOR } from "@/lib/shaders";
+import { toonVertexColors } from "@/lib/toon";
 import { scrollState } from "@/lib/scrollState";
 import { heightAt, TERRAIN } from "@/lib/world";
 import Mountain from "./Mountain";
@@ -14,9 +15,9 @@ import Clouds from "./Clouds";
 import CableCar from "./CableCar";
 import Landmarks from "./Landmarks";
 
-const DAY_HORIZON = new THREE.Color("#eef3e6");
-const DAY_TOP = new THREE.Color("#8ccbe6");
-const DUSK_HORIZON = new THREE.Color("#f7d9b6");
+const DAY_HORIZON = new THREE.Color("#f4f5dc");
+const DAY_TOP = new THREE.Color("#79c7e8");
+const DUSK_HORIZON = new THREE.Color("#f9dcb2");
 const DUSK_TOP = new THREE.Color("#7fb4d6");
 const DAY_SUN = new THREE.Color("#fff4dc");
 const DUSK_SUN = new THREE.Color("#ffc890");
@@ -37,16 +38,7 @@ export default function LowPolyEnvironment({ quality = 1 }) {
       }),
     []
   );
-  const terrainMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        flatShading: true,
-        roughness: 1,
-        metalness: 0,
-      }),
-    []
-  );
+  const terrainMat = useMemo(() => toonVertexColors(), []);
   const sky = useMemo(() => createSkyMaterial(), []);
 
   useEffect(() => {
@@ -59,10 +51,9 @@ export default function LowPolyEnvironment({ quality = 1 }) {
   useEffect(
     () => () => {
       terrain.dispose();
-      terrainMat.dispose();
       sky.dispose();
     },
-    [terrain, terrainMat, sky]
+    [terrain, sky]
   );
 
   const tmp = useMemo(() => new THREE.Color(), []);
@@ -78,8 +69,9 @@ export default function LowPolyEnvironment({ quality = 1 }) {
 
   return (
     <>
-      <hemisphereLight ref={hemiRef} args={["#e6f4ff", "#5f7a58", 0.95]} />
-      <directionalLight ref={sunRef} position={[-45, 70, 40]} intensity={2.1} color="#fff4dc" />
+      <hemisphereLight ref={hemiRef} args={["#e6f4ff", "#5f7a58", 0.75]} />
+      <directionalLight ref={sunRef} position={[-45, 70, 40]} intensity={2.3} color="#fff4dc" />
+      <directionalLight position={[38, 26, -22]} intensity={0.55} color="#a9d9ea" />
 
       <mesh material={sky} scale={420} renderOrder={-1}>
         <sphereGeometry args={[1, 24, 16]} />

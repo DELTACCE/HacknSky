@@ -6,9 +6,10 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { fbm, mulberry32, smoothstep } from "@/lib/noise";
 import { heightAt, isReserved, slopeAt } from "@/lib/world";
 import { timeUniform } from "@/lib/shaders";
+import { facet, gradientMap, outlineMaterial, toon } from "@/lib/toon";
 
-const PINE_COLORS = ["#1f5130", "#24603a", "#2c6e44", "#174a30", "#3a7d4c"];
-const ROUND_COLORS = ["#5b9a4a", "#6fae55", "#4c8a45", "#86b95c", "#3f7d4a"];
+const PINE_COLORS = ["#2f8a52", "#3fa15e", "#4fb56a", "#25714a", "#6cc45a"];
+const ROUND_COLORS = ["#8ed05e", "#a3dd6d", "#6fbe58", "#b6e37e", "#5aa84f"];
 
 function buildPineGeometry() {
   const tiers = [
@@ -24,18 +25,18 @@ function buildPineGeometry() {
   });
   const merged = mergeGeometries(parts);
   parts.forEach((g) => g.dispose());
-  return merged;
+  return facet(merged);
 }
 
 function buildRoundGeometry() {
-  const g = new THREE.IcosahedronGeometry(1.05, 0);
+  const g = facet(new THREE.IcosahedronGeometry(1.05, 0));
   g.scale(1, 0.92, 1);
   g.translate(0, 2.15, 0);
   return g;
 }
 
 function buildTrunkGeometry() {
-  const g = new THREE.CylinderGeometry(0.11, 0.2, 1.4, 5, 1);
+  const g = facet(new THREE.CylinderGeometry(0.11, 0.2, 1.4, 5, 1));
   g.translate(0, 0.7, 0);
   return g;
 }
@@ -43,10 +44,8 @@ function buildTrunkGeometry() {
 // Foliage sways in the vertex shader from the shared clock, so trees move
 // without touching instance matrices on the CPU.
 function makeFoliageMaterial() {
-  const m = new THREE.MeshStandardMaterial({
-    flatShading: true,
-    roughness: 1,
-    metalness: 0,
+  const m = new THREE.MeshToonMaterial({
+    gradientMap,
   });
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = timeUniform;
@@ -106,6 +105,8 @@ export default function Forest({
   const trunkRef = useRef();
   const pineRef = useRef();
   const roundRef = useRef();
+  const pineLineRef = useRef();
+  const roundLineRef = useRef();
 
   const data = useMemo(() => {
     const trees = scatter({ bounds, count, seed, maxHeight, maxSlope });
@@ -121,11 +122,7 @@ export default function Forest({
       trunk: buildTrunkGeometry(),
       pine: buildPineGeometry(),
       round: buildRoundGeometry(),
-      trunkMat: new THREE.MeshStandardMaterial({
-        color: "#6b4a35",
-        flatShading: true,
-        roughness: 1,
-      }),
+      trunkMat: toon("#7a563d"),
       pineMat: makeFoliageMaterial(),
       roundMat: makeFoliageMaterial(),
     }),
@@ -140,13 +137,13 @@ export default function Forest({
     const sc = new THREE.Vector3();
     const col = new THREE.Color();
 
-    const fill = (mesh, list, palette, withColor) => {
+    const fill = (mesh, list, palette, withColor, scaleK = 1) => {
       if (!mesh) return;
       list.forEach((t, i) => {
         e.set(0, t.rot, 0);
         q.setFromEuler(e);
         p.set(t.x, t.y - 0.1, t.z);
-        sc.setScalar(t.s);
+        sc.setScalar(t.s * scaleK);
         m.compose(p, q, sc);
         mesh.setMatrixAt(i, m);
         if (withColor) {
@@ -159,6 +156,8 @@ export default function Forest({
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     };
 
+    fill(pineLineRef.current, data.pines, null, false, 1.045);
+    fill(roundLineRef.current, data.rounds, null, false, 1.045);
     fill(trunkRef.current, data.all, null, false);
     fill(pineRef.current, data.pines, PINE_COLORS, true);
     fill(roundRef.current, data.rounds, ROUND_COLORS, true);
@@ -166,13 +165,26 @@ export default function Forest({
 
   useLayoutEffect(
     () => () => {
-      Object.values(assets).forEach((a) => a.dispose && a.dispose());
+      // Materials live in the shared toon cache; only these geometries are ours.
+      assets.trunk.dispose();
+      assets.pine.dispose();
+      assets.round.dispose();
     },
     [assets]
   );
 
   return (
     <group>
+      <instancedMesh
+        ref={pineLineRef}
+        args={[assets.pine, outlineMaterial, Math.max(1, data.pines.length)]}
+        frustumCulled={false}
+      />
+      <instancedMesh
+        ref={roundLineRef}
+        args={[assets.round, outlineMaterial, Math.max(1, data.rounds.length)]}
+        frustumCulled={false}
+      />
       <instancedMesh
         ref={trunkRef}
         args={[assets.trunk, assets.trunkMat, Math.max(1, data.all.length)]}

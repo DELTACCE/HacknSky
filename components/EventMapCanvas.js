@@ -9,13 +9,14 @@ import { startGlobalClock, timeUniform } from "@/lib/shaders";
 import { scrollState } from "@/lib/scrollState";
 import { useIsMobile, usePrefersReducedMotion } from "@/lib/hooks";
 import { LOCATIONS, heightAt, locationY } from "@/lib/world";
+import { toon, toonVertexColors } from "@/lib/toon";
 import Forest from "./Forest";
 import Waterfall from "./Waterfall";
 import CableCar from "./CableCar";
 import Landmarks from "./Landmarks";
-import { Box } from "./primitives";
+import { Box, mat } from "./primitives";
 
-const BG = "#d3e9f1";
+const BG = "#cfe7f0";
 const AREA = { x0: -42, x1: 42, z0: -42, z1: 24 };
 const GRID = { segW: 56, segD: 44 };
 const DEFAULT_TARGET = [0, 6, -8]; // module constant: a fresh array each render would reset the controls
@@ -70,17 +71,8 @@ function MapTerrain() {
         bottom: -7,
         heightFn: heightAt,
       }),
-      terrainMat: new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        flatShading: true,
-        roughness: 1,
-      }),
-      skirtMat: new THREE.MeshStandardMaterial({
-        color: "#355a45",
-        flatShading: true,
-        roughness: 1,
-        side: THREE.DoubleSide,
-      }),
+      terrainMat: toonVertexColors(),
+      skirtMat: toon("#355a45", { side: THREE.DoubleSide }),
     };
   }, []);
 
@@ -88,10 +80,8 @@ function MapTerrain() {
     () => () => {
       terrain.dispose();
       skirt.dispose();
-      terrainMat.dispose();
-      skirtMat.dispose();
     },
-    [terrain, skirt, terrainMat, skirtMat]
+    [terrain, skirt]
   );
 
   return (
@@ -141,11 +131,12 @@ function Marker({ loc, active, onSelect }) {
         onPointerOut={() => setHover(false)}
       >
         <octahedronGeometry args={[1.15, 0]} />
-        <meshStandardMaterial
-          color={loc.color}
-          emissive={loc.color}
-          emissiveIntensity={0.35}
-          flatShading
+        <primitive
+          object={mat(loc.color, {
+            emissive: loc.color,
+            emissiveIntensity: 0.4,
+          })}
+          attach="material"
         />
       </mesh>
       <Html
@@ -216,8 +207,9 @@ export default function EventMapCanvas({ active, onSelect, inView }) {
     >
       <color attach="background" args={[BG]} />
       <fog attach="fog" args={[BG, 120, 280]} />
-      <hemisphereLight args={["#e6f4ff", "#5f7a58", 1]} />
-      <directionalLight position={[-40, 70, 40]} intensity={2.1} color="#fff4dc" />
+      <hemisphereLight args={["#e6f4ff", "#5f7a58", 0.8]} />
+      <directionalLight position={[-40, 70, 40]} intensity={2.2} color="#fff4dc" />
+      <directionalLight position={[38, 26, -22]} intensity={0.5} color="#a9d9ea" />
 
       <Suspense fallback={null}>
         <MapTerrain />

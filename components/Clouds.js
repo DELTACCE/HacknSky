@@ -5,14 +5,14 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { mulberry32 } from "@/lib/noise";
 import { timeUniform } from "@/lib/shaders";
+import { facet, gradientMap } from "@/lib/toon";
 
-const blobGeo = new THREE.IcosahedronGeometry(1, 0);
-const cloudMat = new THREE.MeshStandardMaterial({
+const blobGeo = facet(new THREE.IcosahedronGeometry(1, 0));
+const cloudMat = new THREE.MeshToonMaterial({
   color: "#ffffff",
-  emissive: "#dbe9ee",
-  emissiveIntensity: 0.4,
-  flatShading: true,
-  roughness: 1,
+  emissive: "#eaf4f7",
+  emissiveIntensity: 0.35,
+  gradientMap,
 });
 
 const SPAN = 240;

@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { CABLE, CABLE_Z, LANE_GAP, cablePoint, carT } from "@/lib/world";
 import { scrollState } from "@/lib/scrollState";
 import { timeUniform } from "@/lib/shaders";
+import { gradientMap } from "@/lib/toon";
 import { Box, Cone, Cyl, PALETTE } from "./primitives";
 
 // ---------------------------------------------------------------------------
@@ -48,7 +49,7 @@ function Station({ x, y, z, outward }) {
       <Box size={[5.4, 0.6, 5.4]} position={[outward * 2.4, 0, 0]} color={PALETTE.stone} />
       {/* hut */}
       <Box size={[3.2, 2.2, 3.8]} position={[outward * 3.2, 1.4, 0]} color={PALETTE.paper} />
-      <Cone radial={4} size={[3.0, 1.1, 3.4]} position={[outward * 3.2, 3.05, 0]} color={PALETTE.emerald} />
+      <Cone radial={4} size={[3.0, 1.1, 3.4]} position={[outward * 3.2, 3.05, 0]} color={PALETTE.clay} />
       <Box size={[0.9, 1.3, 0.1]} position={[outward * 3.2, 1.05, 1.93]} color={PALETTE.lime} />
       {/* pylon + crossbeam holding both lanes */}
       <Box size={[0.5, topY, 0.5]} position={[0, topY / 2, 0]} color={PALETTE.sage} />
@@ -64,10 +65,9 @@ function Station({ x, y, z, outward }) {
 // Two cables, two stations, two cabins travelling in opposite directions.
 // `driveWithScroll`: lane 0 follows page scroll progress (hero behaviour).
 // ---------------------------------------------------------------------------
-const cableMat = new THREE.MeshStandardMaterial({
+const cableMat = new THREE.MeshToonMaterial({
   color: "#26332d",
-  roughness: 1,
-  flatShading: true,
+  gradientMap,
 });
 
 function buildCableGeometry(lane) {

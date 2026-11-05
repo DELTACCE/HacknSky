@@ -36,6 +36,45 @@ body {
   overflow-x: hidden;
 }
 
+.hero-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(246, 242, 232, 0.96) 0%,
+      rgba(246, 242, 232, 0.9) 30%,
+      rgba(246, 242, 232, 0.45) 52%,
+      rgba(246, 242, 232, 0) 72%
+    ),
+    linear-gradient(
+      to top,
+      rgba(246, 242, 232, 0.96) 0%,
+      rgba(246, 242, 232, 0.45) 22%,
+      rgba(246, 242, 232, 0) 44%
+    );
+}
+
+.hero-chip {
+  background: rgba(246, 242, 232, 0.9);
+  padding: 0.9rem 1.1rem;
+  backdrop-filter: blur(6px);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+@media (max-width: 767px) {
+  .hero-wash {
+    background: linear-gradient(
+      to top,
+      rgba(246, 242, 232, 0.98) 0%,
+      rgba(246, 242, 232, 0.88) 38%,
+      rgba(246, 242, 232, 0.45) 64%,
+      rgba(246, 242, 232, 0.05) 100%
+    );
+  }
+}
+
 .hero-title {
   text-shadow: 0 2px 34px rgba(246, 242, 232, 0.5);
 }
@@ -118,11 +157,13 @@ body {
   position: absolute !important;
   inset: 0;
   transition: opacity 1.2s ease;
+  filter: saturate(1.14) contrast(1.03);
 }
 
 /* ---- content surfaces ------------------------------------------------ */
 .panel {
-  background: rgba(246, 242, 232, 0.94);
+  background: rgba(246, 242, 232, 0.97);
+  backdrop-filter: blur(2px);
   color: var(--emerald);
   padding: clamp(1.4rem, 3vw, 2.4rem);
   clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
