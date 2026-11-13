@@ -18,6 +18,11 @@ export default function Page() {
       </a>
 
       <Loader />
+      {/* without JS the captions never get a data-state, so just show them */}
+      <noscript>
+        <style>{`.caption *{opacity:1!important;transform:none!important}.caption{visibility:visible!important}`}</style>
+      </noscript>
+
       <SceneLayer />
       <ScrollController />
       <Navigation />

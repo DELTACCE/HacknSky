@@ -7,27 +7,43 @@ import RegisterButton from "./RegisterButton";
 function Logo() {
   return (
     <a href="#top" className="flex items-center gap-2.5" aria-label="HacknSky, back to top">
-      <svg width="30" height="24" viewBox="0 0 30 24" aria-hidden="true">
+      <svg className="h-5 w-6 sm:h-6 sm:w-[30px]" width="30" height="24" viewBox="0 0 30 24" aria-hidden="true">
         <polygon points="0,22 10,5 17,22" fill="currentColor" opacity="0.55" />
         <polygon points="8,22 19,2 30,22" fill="currentColor" />
         <polygon points="19,2 23.5,10 19,8.5 15,10" fill="currentColor" opacity="0.7" />
         <polygon points="3,4 7,0 11,4 7,8" fill="#c6f04e" />
       </svg>
-      <span className="text-lg font-bold tracking-tight">HacknSky</span>
+      <span className="nav-text text-[1.05rem] font-bold tracking-tight sm:text-lg">HacknSky</span>
     </a>
   );
 }
 
 export default function Navigation() {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [overScene, setOverScene] = useState(true);
   const [active, setActive] = useState("");
 
+  // The bar stays see-through while the 3D world is behind it (hero, destination,
+  // cable car) and only turns solid once opaque sections scroll underneath.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const ids = ["top", "destination", "cable-car"];
+    const onScroll = () => {
+      const probe = 28; // px below the top edge
+      const over = ids.some((id) => {
+        const el = document.getElementById(id);
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        return r.top <= probe && r.bottom > probe;
+      });
+      setOverScene(over);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   // highlight the section under the middle of the viewport
@@ -58,20 +74,20 @@ export default function Navigation() {
     };
   }, [open]);
 
-  const solid = scrolled || open;
+  const solid = !overScene || open;
   const bar = solid
     ? "border-b border-emerald/10 bg-paper/95 text-emerald backdrop-blur-md"
-    : "bg-gradient-to-b from-ink/82 via-ink/42 to-transparent text-cream backdrop-blur-[2px]";
+    : "nav-over text-cream";
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${bar}`}>
+    <header className={`site-header fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${bar}`}>
       <nav
-        className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 sm:px-10"
+        className="nav-bar mx-auto flex h-14 max-w-[1400px] items-center justify-between sm:h-16"
         aria-label="Primary"
       >
         <Logo />
 
-        <ul className="hidden items-center gap-7 lg:flex">
+        <ul className="hidden items-center gap-6 lg:flex xl:gap-7">
           {NAV_LINKS.map((l) => {
             const on = active === l.href.slice(1);
             return (
@@ -79,8 +95,8 @@ export default function Navigation() {
                 <a
                   href={l.href}
                   aria-current={on ? "true" : undefined}
-                  className={`relative py-1 text-sm font-medium transition-opacity ${
-                    on ? "opacity-100" : "opacity-85 hover:opacity-100"
+                  className={`nav-text relative py-1 text-[0.82rem] font-medium transition-opacity ${
+                    on ? "opacity-100" : "opacity-75 hover:opacity-100"
                   }`}
                 >
                   {l.label}
@@ -96,10 +112,10 @@ export default function Navigation() {
         </ul>
 
         <div className="flex items-center gap-3">
-          <RegisterButton className="btn btn-lime !py-2.5 !px-5 text-sm">Register</RegisterButton>
+          <RegisterButton className="btn btn-lime btn-nav">Register</RegisterButton>
           <button
             type="button"
-            className="grid h-10 w-10 place-items-center lg:hidden"
+            className="nav-text -mr-2 grid h-11 w-11 place-items-center lg:hidden"
             aria-expanded={open}
             aria-controls="mobile-menu"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -124,7 +140,7 @@ export default function Navigation() {
       <div
         id="mobile-menu"
         hidden={!open}
-        className="h-[calc(100svh-4rem)] overflow-y-auto bg-paper px-5 pb-10 pt-6 lg:hidden"
+        className="mobile-menu overflow-y-auto overscroll-contain bg-paper px-5 pt-4 text-emerald lg:hidden"
       >
         <ul className="flex flex-col">
           {NAV_LINKS.map((l, i) => (
@@ -132,7 +148,7 @@ export default function Navigation() {
               <a
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="display flex items-baseline gap-4 py-4 text-4xl"
+                className="display flex items-baseline gap-4 py-3.5 text-[2rem] sm:text-4xl"
               >
                 <span className="eyebrow w-6 opacity-50">{String(i + 1).padStart(2, "0")}</span>
                 {l.label}
@@ -140,7 +156,7 @@ export default function Navigation() {
             </li>
           ))}
         </ul>
-        <RegisterButton className="btn btn-dark mt-8 w-full justify-center" onClick={() => setOpen(false)}>
+        <RegisterButton className="btn btn-dark btn-lg mt-7 w-full justify-center" onClick={() => setOpen(false)}>
           Register Now
         </RegisterButton>
       </div>

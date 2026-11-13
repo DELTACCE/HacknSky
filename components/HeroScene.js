@@ -5,18 +5,11 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { scrollState, SCENE_STAGES, emitStage } from "@/lib/scrollState";
 import { cablePoint, carT } from "@/lib/world";
+import { KEYS } from "@/lib/cameraPath";
 import { startGlobalClock, timeUniform } from "@/lib/shaders";
 import { useIsMobile, useLowPower } from "@/lib/hooks";
 import LowPolyEnvironment from "./LowPolyEnvironment";
-
-// Camera path: one keyframe per scene section.
-//   0 hero · 1 destination · 2 cable car · 3 registration
-const KEYS = [
-  { pos: [3, 17, 47], tgt: [0, 11, -12] },
-  { pos: [10, 14.5, 20], tgt: [-2, 13, -26] },
-  { pos: [-3, 12, 10], tgt: [6, 10, -2] },
-  { pos: [0, 28, 54], tgt: [0, 9, -18] },
-];
+import WorldCaptions from "./WorldCaptions";
 
 const v3 = (a) => new THREE.Vector3(...a);
 
@@ -168,6 +161,7 @@ export default function HeroScene() {
         <LowPolyEnvironment quality={low ? 0.35 : mobile ? 0.55 : 1} />
       </Suspense>
       <Rig />
+      <WorldCaptions />
       <Driver idleMs={low ? 90 : mobile ? 55 : 34} />
     </Canvas>
   );

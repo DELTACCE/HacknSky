@@ -1,7 +1,6 @@
 import { EVENT } from "@/lib/config";
 import {
   ACTIVITIES,
-  ARRIVAL_BEATS,
   AWARDS,
   CABLE_POINTS,
   DAY_PLAN,
@@ -16,6 +15,7 @@ import {
   TRACKS,
 } from "@/lib/content";
 import Glyph from "./Glyph";
+import { CaptionText, CaptionTitle, ChapterLabel } from "./Caption";
 import PlaygroundArt from "./PlaygroundArt";
 import EventMap from "./EventMap";
 
@@ -33,44 +33,35 @@ function Eyebrow({ n, children }) {
 
 // ---------------------------------------------------------------------------
 // 01 · The Destination
+// A "location discovered" caption over the open 3D valley: no card, no panel.
+// ScrollController toggles data-state from the data-from/data-to window
+// (0..1 across the pinned scroll of the section).
 // ---------------------------------------------------------------------------
 export function Destination() {
   return (
-    <section id="destination" data-scene className="relative h-[150svh] text-cream">
-      <div className="sticky top-0 flex h-[calc(100svh-4.5rem)] items-center">
-        <div className={wrap}>
-          <div className="panel panel-dark max-w-xl" data-reveal>
-            <Eyebrow n="01">The Destination</Eyebrow>
-            <h2 className="section-title mt-5">Where the forest breaks open.</h2>
-            <p className="mt-5 max-w-md text-base leading-relaxed sm:text-lg">
-              Athirappilly sits where the Chalakudy River drops off a ledge into the rainforest.
-              Mist, hornbills and a very loud waterfall. No ballroom. No fluorescent lights.
-            </p>
-            <p className="mt-3 max-w-md text-sm leading-relaxed opacity-75">
-              Buses leave Irinjalakuda before the mist lifts. Forty students, one shared floor, and
-              a valley that makes a lecture hall feel very far away.
-            </p>
-            <dl className="mt-7 grid grid-cols-3 gap-4 border-t border-cream/20 pt-5">
-              {FACTS.map((f) => (
-                <div key={f.label}>
-                  <dt className="eyebrow opacity-60">{f.label}</dt>
-                  <dd className="mt-1.5 text-base font-bold leading-tight sm:text-lg">{f.value}</dd>
-                </div>
-              ))}
-            </dl>
-            <ul className="mt-6 space-y-2 border-t border-cream/20 pt-4 text-sm">
-              {ARRIVAL_BEATS.map((b) => (
-                <li key={b.time} className="flex gap-3">
-                  <span className="w-12 flex-none font-semibold tabular-nums opacity-60">
-                    {b.time}
-                  </span>
-                  <span>{b.text}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-xs opacity-60">
-              Proposed destination. Day-one timings are indicative.
-            </p>
+    <section id="destination" data-scene data-chapter className="scene scene-destination">
+      <div className="scene-pin">
+        <div className="scene-pin-inner">
+          <div className="dock dock-destination">
+            <div className="caption world-sr" data-caption data-cap-id="dest" data-from="0" data-to="0.8" data-state="out">
+              <ChapterLabel>01 — The Destination</ChapterLabel>
+              <CaptionTitle>Where the forest breaks open.</CaptionTitle>
+              <CaptionText>
+                Athirappilly is where the Chalakudy River drops off a ledge into the rainforest.
+                Mist, hornbills, one very loud waterfall.
+              </CaptionText>
+              <dl className="cap-facts cap-rise" style={{ "--d": "760ms" }}>
+                {FACTS.map((f) => (
+                  <div key={f.label}>
+                    <dd>{f.value}</dd>
+                    <dt>{f.label}</dt>
+                  </div>
+                ))}
+              </dl>
+              <p className="cap-note cap-rise" style={{ "--d": "900ms" }}>
+                Proposed destination. Arrival timings are in the day plan below.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -80,40 +71,51 @@ export function Destination() {
 
 // ---------------------------------------------------------------------------
 // 02 · The Cable Car
+// Two beats while the cabin crosses the valley: the idea, then the details.
 // ---------------------------------------------------------------------------
 export function CableCarSection() {
+  const [first, second, third, caveat] = CABLE_POINTS;
   return (
-    <section id="cable-car" data-scene className="relative h-[250svh] text-cream">
-      <div className="sticky top-0 flex h-[calc(100svh-4.5rem)] items-end pb-8 sm:pb-14">
-        <div className={wrap}>
-          <div className="panel panel-dark max-w-xl" data-reveal>
-            <Eyebrow n="02">The Cable Car</Eyebrow>
-            <h2 className="section-title mt-5">The view you’re building for.</h2>
-            <p className="mt-5 max-w-md text-base leading-relaxed sm:text-lg">
-              The Sky Storm line runs orange gondolas straight over the treeline. It is the reward
-              waiting at the end of the build, and the reason this hackathon is not in a lecture
-              hall.
-            </p>
-            <ul className="mt-5 space-y-3 text-base leading-snug sm:text-lg">
-              {CABLE_POINTS.map((p) => (
-                <li key={p} className="flex gap-3">
-                  <span className="dot mt-2" />
-                  {p}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-7 flex items-center gap-3">
-              <span className="eyebrow">West</span>
-              <span className="relative h-[3px] flex-1 bg-cream/20" aria-hidden="true">
-                <span
-                  data-car-fill
-                  className="absolute inset-0 origin-left bg-lime"
-                  style={{ transform: "scaleX(0)" }}
-                />
-              </span>
-              <span className="eyebrow">East</span>
+    <section id="cable-car" data-scene data-chapter className="scene scene-cable">
+      <div className="scene-pin">
+        <div className="scene-pin-inner">
+          <div className="dock dock-cable">
+            <div className="caption world-sr" data-caption data-cap-id="cable-a" data-from="0" data-to="0.46" data-state="out">
+              <ChapterLabel>02 — The Cable Car</ChapterLabel>
+              <CaptionTitle>The view you’re building for.</CaptionTitle>
+              <CaptionText>
+                The Sky Storm line runs gondolas straight over the treeline. It’s the reward
+                waiting at the end of the build.
+              </CaptionText>
             </div>
-            <p className="mt-3 text-sm opacity-70">Keep scrolling. The cabin follows you across.</p>
+
+            <div className="caption world-sr" data-caption data-cap-id="cable-b" data-from="0.5" data-to="0.94" data-state="out">
+              <ChapterLabel>02 — Along the line</ChapterLabel>
+              <ul className="cap-points">
+                {[first, second, third].map((pt, i) => (
+                  <li key={pt} className="cap-rise" style={{ "--d": `${160 + i * 160}ms` }}>
+                    <span className="dot" aria-hidden="true" />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+              <p className="cap-note cap-rise" style={{ "--d": "700ms" }}>
+                {caveat}
+              </p>
+            </div>
+          </div>
+
+          <div className="hud caption" data-caption data-from="0.03" data-to="0.88" data-state="out">
+            <div className="hud-row cap-rise" style={{ "--d": "300ms" }}>
+              <span>West</span>
+              <span className="hud-bar" aria-hidden="true">
+                <span data-car-fill style={{ transform: "scaleX(0)" }} />
+              </span>
+              <span>East</span>
+            </div>
+            <p className="hud-hint cap-rise" style={{ "--d": "420ms" }}>
+              Keep scrolling. The cabin follows you across.
+            </p>
           </div>
         </div>
       </div>

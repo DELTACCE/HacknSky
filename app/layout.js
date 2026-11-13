@@ -42,6 +42,9 @@ export const metadata = {
 export const viewport = {
   themeColor: "#0b2b24",
   colorScheme: "light",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // lets env(safe-area-inset-*) work on notched phones
 };
 
 export default function RootLayout({ children }) {

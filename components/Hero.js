@@ -1,64 +1,59 @@
 import { EVENT } from "@/lib/config";
 import Countdown from "./Countdown";
 import RegisterButton from "./RegisterButton";
+import { SplitWords } from "./Caption";
 
 // Text only: the world itself lives in the fixed WebGL layer behind it.
+// Deliberately small: eyebrow, title, tagline, one primary action, one quiet
+// action and a tiny floating countdown. Everything else lives further down the
+// page. ScrollController flips data-state so the whole block reveals on load
+// and lifts away as soon as the camera starts to move.
 export default function Hero() {
   return (
-    <section
-      id="top"
-      data-scene
-      className="relative flex min-h-[100svh] flex-col justify-between px-5 pb-8 pt-24 text-cream sm:px-10 sm:pb-10"
-    >
-      <div aria-hidden="true" className="hero-scrim" />
-      <div className="relative z-10 w-full max-w-[1400px] lg:max-w-[64%]">
-        <p className="eyebrow flex flex-wrap items-center gap-x-3 gap-y-1" data-hero-in>
-          <span className="inline-block h-2.5 w-2.5 rotate-45 bg-lime outline outline-1 outline-emerald/40" />
-          <span>
-            {EVENT.organiser} × {EVENT.edition}
-          </span>
-          <span className="opacity-40" aria-hidden="true">
-            /
-          </span>
-          <span>
-            {EVENT.location} · {EVENT.dateLabel}
-          </span>
-        </p>
-        <h1 className="display hero-title mt-3 overflow-hidden pb-[0.14em] text-[clamp(2.9rem,11vw,10rem)]">
-          <span className="block" data-hero-in>
-            {EVENT.name}
-          </span>
-        </h1>
-        <p
-          className="hero-tagline mt-3 max-w-2xl text-[clamp(1.1rem,2.05vw,1.7rem)] font-bold uppercase tracking-[0.12em]"
-          data-hero-in
-        >
-          {EVENT.tagline}
-        </p>
-      </div>
+    <section id="top" data-scene className="hero">
+      <div className="hero-main caption" data-hero-caption data-cap-id="hero" data-state="out">
+        {/* becomes screen-reader-only once the same words exist as 3D text in the scene */}
+        <div className="hero-head world-sr">
+          <p className="cap-label hero-eyebrow" style={{ "--d": "0ms" }}>
+            <svg className="hero-pin" width="10" height="13" viewBox="0 0 10 13" aria-hidden="true">
+              <path
+                d="M5 0C2.2 0 0 2.2 0 4.9 0 8.4 5 13 5 13s5-4.6 5-8.1C10 2.2 7.8 0 5 0Zm0 6.8a1.9 1.9 0 1 1 0-3.8 1.9 1.9 0 0 1 0 3.8Z"
+                fill="currentColor"
+              />
+            </svg>
+            <span className="cap-label-text">
+              {EVENT.location}
+              <span className="hero-sep" aria-hidden="true">
+                /
+              </span>
+              {EVENT.dateLabel}
+            </span>
+          </p>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
-        <div className="hero-panel max-w-xl" data-hero-in>
-          <p className="text-2xl font-medium leading-tight sm:text-3xl">
-            {EVENT.subtitle}
-          </p>
-          <p className="mt-3 max-w-md text-lg leading-relaxed text-cream/90 sm:text-xl">
-            {EVENT.lead}
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <RegisterButton className="btn btn-lime">Register interest</RegisterButton>
-            <a href="#destination" className="btn btn-outline-light">
-              Explore the experience
-              <span aria-hidden="true">↓</span>
-            </a>
-          </div>
-          <p className="mt-4 text-sm leading-relaxed text-cream/75">
-            {EVENT.status}
+          <h1 className="hero-title">
+            <SplitWords text={EVENT.name} start={120} />
+          </h1>
+
+          <p className="cap-text hero-tagline" style={{ "--d": "520ms" }}>
+            {EVENT.tagline}
           </p>
         </div>
 
-        <div className="hero-chip" data-hero-in>
-          <Countdown tone="light" />
+        <div className="hero-actions cap-rise" style={{ "--d": "760ms" }}>
+          <RegisterButton className="btn btn-lime btn-lg">
+            Register interest
+            <span aria-hidden="true">→</span>
+          </RegisterButton>
+          <a href="#destination" className="hero-link">
+            Explore the experience
+            <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+      </div>
+
+      <div className="hero-timer caption" data-hero-caption data-state="out">
+        <div className="cap-rise" style={{ "--d": "980ms" }}>
+          <Countdown variant="chip" />
         </div>
       </div>
     </section>
