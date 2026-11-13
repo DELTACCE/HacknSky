@@ -5,13 +5,14 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { buildPeakGeometry } from "@/lib/lowpoly";
 import { mulberry32 } from "@/lib/noise";
-import { outlineMaterial, toonVertexColors } from "@/lib/toon";
+import { toonVertexColors } from "@/lib/toon";
 
 // Distant faceted ranges that frame the valley. All peaks are merged into one
-// fill mesh and one outline mesh so the horizon costs two draw calls instead
-// of forty.
+// fill mesh, so the whole horizon costs a single draw call. No inverted-hull
+// outline here: on sharp distant ridges the black shell pokes through the fill
+// and reads as holes/dark triangles, so the peaks rely on their own shading.
 export default function Mountain() {
-  const { geometry, outlineGeometry, material } = useMemo(() => {
+  const { geometry, material } = useMemo(() => {
     const rand = mulberry32(21);
     const list = [];
 
@@ -22,18 +23,6 @@ export default function Mountain() {
         z: -96 + (rand() - 0.5) * 10,
         radius: 20 + rand() * 10,
         height: 40 + rand() * 18,
-        rot: 0,
-      });
-    }
-    // a nearer rank sits just in front of the back wall, darker and greener,
-    // so the horizon reads as several distinct ridges rather than one cutout
-    for (let x = -66; x <= 66; x += 22) {
-      list.push({
-        x: x + (rand() - 0.5) * 10,
-        z: -87 + (rand() - 0.5) * 4,
-        radius: 14 + rand() * 6,
-        height: 24 + rand() * 12,
-        rot: rand() * 1.4,
       });
     }
     // second row, pushed to the flanks so the valley stays open
@@ -44,7 +33,6 @@ export default function Mountain() {
           z: -78 + (rand() - 0.5) * 8,
           radius: 17 + rand() * 7,
           height: 28 + rand() * 12,
-          rot: i * 0.9,
         });
       }
     }
@@ -56,20 +44,14 @@ export default function Mountain() {
           z: z + (rand() - 0.5) * 6,
           radius: 19 + rand() * 6,
           height: 26 + rand() * 12,
-          rot: z * 0.2,
         });
       }
     }
 
     const fills = [];
-    const lines = [];
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const euler = new THREE.Euler();
-    const scale = new THREE.Vector3();
+    const baseY = -9;
+    const one = new THREE.Vector3(1, 1, 1);
 
-    const nearTint = new THREE.Color("#3d6150");
-    const c = new THREE.Color();
     list.forEach((p, i) => {
       const g = buildPeakGeometry({
         radius: p.radius,
@@ -78,54 +60,22 @@ export default function Mountain() {
         radial: 8,
         heightSegs: 5,
       });
-      if (p.z > -93) {
-        const attr = g.attributes.color;
-        for (let v = 0; v < attr.count; v++) {
-          c.fromBufferAttribute(attr, v).lerp(nearTint, 0.4);
-          attr.setXYZ(v, c.r, c.g, c.b);
-        }
-      }
-      const m = new THREE.Matrix4();
-      euler.set(0, p.rot, 0);
-      quat.setFromEuler(euler);
-      pos.set(p.x, -5, p.z);
-      scale.set(1, 1, 1);
-      m.compose(pos, quat, scale);
-      const fill = g.clone();
-      fill.applyMatrix4(m);
-      fills.push(fill);
-      const line = g.clone();
-      line.applyMatrix4(new THREE.Matrix4().compose(pos, quat, scale.set(1.008, 1.008, 1.008)));
-      lines.push(line);
-      g.dispose();
+      const pos = new THREE.Vector3(p.x, baseY, p.z);
+      const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, i * 0.9, 0));
+      g.applyMatrix4(new THREE.Matrix4().compose(pos, quat, one));
+      fills.push(g);
     });
 
-    const mergedFill = mergeGeometries(fills, false);
-    const mergedLine = mergeGeometries(lines, false);
+    const merged = mergeGeometries(fills, false);
     fills.forEach((g) => g.dispose());
-    lines.forEach((g) => g.dispose());
-    mergedFill.computeBoundingSphere();
-    mergedLine.computeBoundingSphere();
+    merged.computeBoundingSphere();
 
-    return {
-      geometry: mergedFill,
-      outlineGeometry: mergedLine,
-      material: toonVertexColors(),
-    };
+    // Double-sided: if any facet ends up wound backwards after jitter it still
+    // fills instead of showing the sky through a triangular hole.
+    return { geometry: merged, material: toonVertexColors({ side: THREE.DoubleSide }) };
   }, []);
 
-  useEffect(
-    () => () => {
-      geometry.dispose();
-      outlineGeometry.dispose();
-    },
-    [geometry, outlineGeometry]
-  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
-  return (
-    <group>
-      <mesh geometry={geometry} material={material} />
-      <mesh geometry={outlineGeometry} material={outlineMaterial} />
-    </group>
-  );
+  return <mesh geometry={geometry} material={material} />;
 }

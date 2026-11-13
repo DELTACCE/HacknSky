@@ -3,10 +3,10 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { scrollState, SCENE_STAGES } from "@/lib/scrollState";
+import { scrollState, SCENE_STAGES, emitStage } from "@/lib/scrollState";
 import { cablePoint, carT } from "@/lib/world";
 import { startGlobalClock, timeUniform } from "@/lib/shaders";
-import { useIsMobile } from "@/lib/hooks";
+import { useIsMobile, useLowPower } from "@/lib/hooks";
 import LowPolyEnvironment from "./LowPolyEnvironment";
 
 // Camera path: one keyframe per scene section.
@@ -14,15 +14,9 @@ import LowPolyEnvironment from "./LowPolyEnvironment";
 const KEYS = [
   { pos: [3, 17, 47], tgt: [0, 11, -12] },
   { pos: [10, 14.5, 20], tgt: [-2, 13, -26] },
-  { pos: [0, 15, 38], tgt: [0, 10, -4] },
+  { pos: [-3, 12, 10], tgt: [6, 10, -2] },
   { pos: [0, 28, 54], tgt: [0, 9, -18] },
 ];
-
-// While the cable-car section is pinned, the camera dollies from the wide
-// establishing shot into the east terminal. The pinned scroll is therefore a
-// real camera move, not a still frame with text over it.
-const CABLE_CLOSE_POS = new THREE.Vector3(8, 17, 35);
-const CABLE_CLOSE_TGT = new THREE.Vector3(3, 10, -4);
 
 const v3 = (a) => new THREE.Vector3(...a);
 
@@ -50,10 +44,9 @@ function Rig() {
   );
   const fovRef = useRef(0);
 
-  useFrame((frame, dt) => {
+  useFrame((_, dt) => {
     const s = scrollState;
     const d = Math.min(dt, 0.1);
-    const time = frame.clock.elapsedTime;
     s.smooth = s.reduced
       ? s.progress
       : THREE.MathUtils.damp(s.smooth, s.progress, 3.5, d);
@@ -80,34 +73,13 @@ function Rig() {
       tmp.tgt.lerp(tmp.car, w);
     }
 
-    // the pinned cable section dollies in and then holds: the last third of
-    // the pin is a settled shot of the terminal with the cabin arriving
-    const cableK =
-      THREE.MathUtils.smoothstep(stage, 2.02, 2.44) *
-      (1 - THREE.MathUtils.smoothstep(stage, 2.66, 2.98));
-    if (cableK > 0.001) {
-      tmp.pos.lerp(CABLE_CLOSE_POS, cableK * 0.85);
-      tmp.tgt.lerp(CABLE_CLOSE_TGT, cableK * 0.6);
-    }
-
     // portrait screens: wider lens and a camera pulled back
     const portrait = size.width / size.height < 0.9;
-    // a fast flick opens the lens slightly, which reads as speed
-    const flick = s.reduced ? 0 : Math.min(1.1, s.velocity * 0.016);
-    const fov = (portrait ? 58 : 45) - (portrait ? 0 : cableK * 1.5) + flick;
-    if (Math.abs(fovRef.current - fov) > 0.01) {
+    const fov = portrait ? 58 : 45;
+    if (fovRef.current !== fov) {
       fovRef.current = fov;
       camera.fov = fov;
       camera.updateProjectionMatrix();
-    }
-
-    // while the camera is parked on an anchor the world must not look frozen:
-    // a slow drift keeps the pinned sections alive without any scroll input
-    if (!s.reduced && s.dwell > 0.01) {
-      const k = s.dwell * 0.22;
-      tmp.pos.x += Math.sin(time * 0.34) * k;
-      tmp.pos.y += Math.cos(time * 0.27) * k * 0.45;
-      tmp.tgt.y += Math.sin(time * 0.21 + 1.2) * k * 0.3;
     }
     if (portrait) tmp.pos.sub(tmp.tgt).multiplyScalar(1.3).add(tmp.tgt);
 
@@ -127,59 +99,51 @@ function Rig() {
   return null;
 }
 
-// frameloop="demand" + our own rAF: renders only while the canvas is visible.
-function Driver({ mobile, low }) {
+// frameloop="demand" + our own rAF. Scrolling renders at full speed; when the
+// scene is parked we fall back to a low cadence rather than burning the GPU at
+// 60fps. Off-screen and hidden tabs stop entirely.
+function Driver({ idleMs = 34 }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     let id;
-    let warm = 4;
+    let warm = 5;
     let last = -1;
-    let lastIdle = 0;
+    let lastDraw = 0;
+    let drawn = 0;
     const loop = (now) => {
       const s = scrollState;
       if (s.active && !document.hidden) {
-        const moved = Math.abs(s.progress - last) > 1e-4 || Math.abs(s.progress - s.smooth) > 1e-4;
-        if (!s.reduced || moved || warm > 0) invalidate();
-        last = s.progress;
-        if (warm > 0) warm--;
-
-        // Keep the hero alive without running the GPU flat out: a low, fixed
-        // cadence for the clouds, mist and water while the scene is idle.
-        if (!s.reduced && s.smooth < 0.62) {
-          const gap = low ? 66 : mobile ? 50 : 34;
-          if (now - lastIdle > gap) {
-            invalidate();
-            lastIdle = now;
+        const moved =
+          Math.abs(s.progress - last) > 1e-4 ||
+          Math.abs(s.progress - s.smooth) > 1e-4;
+        const idle = now - lastDraw > idleMs;
+        if (moved || warm > 0 || (!s.reduced && idle)) {
+          invalidate();
+          lastDraw = now;
+          if (warm > 0) warm--;
+          if (drawn < 3) {
+            drawn++;
+            if (drawn === 3) emitStage("rendered");
           }
         }
+        last = s.progress;
       }
       id = requestAnimationFrame(loop);
     };
     id = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(id);
-  }, [invalidate, mobile, low]);
+  }, [invalidate, idleMs]);
   return null;
-}
-
-function useLowPower(mobile) {
-  const [low, setLow] = useState(false);
-  useEffect(() => {
-    const cores = navigator.hardwareConcurrency || 4;
-    const mem = navigator.deviceMemory || 4;
-    setLow(mobile && (cores <= 4 || mem <= 4 || window.devicePixelRatio * window.innerWidth > 1200));
-  }, [mobile]);
-  return low;
 }
 
 export default function HeroScene() {
   const mobile = useIsMobile();
-  // A phone that reports few cores / little memory gets a lighter world and a
-  // 1x backbuffer: fill rate is what actually hurts on low-end hardware.
   const low = useLowPower(mobile);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
     startGlobalClock(scrollState);
+    emitStage("scene");
   }, []);
 
   return (
@@ -188,17 +152,23 @@ export default function HeroScene() {
       style={{ opacity: shown ? 1 : 0 }}
       frameloop="demand"
       flat
-      shadows={mobile ? false : "soft"}
+      shadows={mobile || low ? false : "soft"}
       dpr={low ? [1, 1] : mobile ? [1, 1.25] : [1, 1.6]}
       camera={{ fov: 45, near: 0.5, far: 800, position: KEYS[0].pos }}
-      gl={{ antialias: !mobile, powerPreference: "high-performance" }}
-      onCreated={() => setShown(true)}
+      gl={{
+        antialias: !mobile && !low,
+        powerPreference: low ? "low-power" : "high-performance",
+      }}
+      onCreated={() => {
+        setShown(true);
+        emitStage("canvas");
+      }}
     >
       <Suspense fallback={null}>
-        <LowPolyEnvironment quality={low ? 0.4 : mobile ? 0.55 : 1} />
+        <LowPolyEnvironment quality={low ? 0.35 : mobile ? 0.55 : 1} />
       </Suspense>
       <Rig />
-      <Driver mobile={mobile} low={low} />
+      <Driver idleMs={low ? 90 : mobile ? 55 : 34} />
     </Canvas>
   );
 }

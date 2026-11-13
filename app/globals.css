@@ -46,38 +46,45 @@ body {
   overflow-x: hidden;
 }
 
+/* Darken only behind the headline and the bottom panel so the valley stays
+   clearly visible through the middle and right of the hero. */
 .hero-scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
     radial-gradient(
-      ellipse 58% 21% at 30% 26%,
-      rgba(7, 28, 24, 0.66) 0%,
-      rgba(7, 28, 24, 0.32) 52%,
-      rgba(7, 28, 24, 0) 88%
+      ellipse 44% 34% at 18% 24%,
+      rgba(7, 28, 24, 0.5) 0%,
+      rgba(7, 28, 24, 0.26) 48%,
+      rgba(7, 28, 24, 0) 80%
+    ),
+    linear-gradient(
+      100deg,
+      rgba(7, 28, 24, 0.44) 0%,
+      rgba(7, 28, 24, 0.2) 34%,
+      rgba(7, 28, 24, 0) 60%
     ),
     linear-gradient(
       to bottom,
-      rgba(7, 28, 24, 0.46) 0%,
-      rgba(7, 28, 24, 0.13) 12%,
-      rgba(7, 28, 24, 0) 22%
-    ),
-    linear-gradient(
-      to top,
-      rgba(7, 28, 24, 0.4) 0%,
-      rgba(7, 28, 24, 0.12) 14%,
-      rgba(7, 28, 24, 0) 32%
+      rgba(7, 28, 24, 0.34) 0%,
+      rgba(7, 28, 24, 0.08) 16%,
+      rgba(7, 28, 24, 0) 30%
     );
 }
 
 .hero-panel {
-  padding: 0;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.35);
+  background: rgba(7, 28, 24, 0.3);
+  border: 1px solid rgba(248, 242, 228, 0.1);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(10px) saturate(1.12);
+  -webkit-backdrop-filter: blur(10px) saturate(1.12);
+  padding: clamp(1.15rem, 2vw, 1.6rem) clamp(1.2rem, 2.2vw, 1.8rem);
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
 }
 
 .hero-chip {
-  background: rgba(7, 28, 24, 0.3);
+  background: rgba(7, 28, 24, 0.38);
   border: 1px solid rgba(248, 242, 228, 0.18);
   padding: 0.95rem 1.15rem;
   backdrop-filter: blur(10px) saturate(1.05);
@@ -90,52 +97,33 @@ body {
   .hero-scrim {
     background:
       radial-gradient(
-        ellipse 96% 30% at 50% 22%,
-        rgba(7, 28, 24, 0.68) 0%,
-        rgba(7, 28, 24, 0.34) 56%,
-        rgba(7, 28, 24, 0) 90%
+        ellipse 120% 30% at 50% 16%,
+        rgba(7, 28, 24, 0.55) 0%,
+        rgba(7, 28, 24, 0.3) 55%,
+        rgba(7, 28, 24, 0) 82%
       ),
       linear-gradient(
         to bottom,
-        rgba(7, 28, 24, 0.44) 0%,
-        rgba(7, 28, 24, 0.12) 14%,
-        rgba(7, 28, 24, 0) 28%
+        rgba(7, 28, 24, 0.45) 0%,
+        rgba(7, 28, 24, 0.1) 18%,
+        rgba(7, 28, 24, 0) 32%
       ),
       linear-gradient(
         to top,
-        rgba(7, 28, 24, 0.62) 0%,
-        rgba(7, 28, 24, 0.38) 30%,
-        rgba(7, 28, 24, 0.12) 58%,
-        rgba(7, 28, 24, 0) 78%
+        rgba(7, 28, 24, 0.7) 0%,
+        rgba(7, 28, 24, 0.35) 30%,
+        rgba(7, 28, 24, 0) 58%
       );
-  }
-
-  /* on a phone, shade the copy with a soft wash instead of a frosted card so
-     the valley, the fall and the cable stay readable behind it */
-  .hero-panel {
-    padding: 0.9rem 1rem 1rem 0.9rem;
-    background: linear-gradient(
-      100deg,
-      rgba(7, 28, 24, 0.62) 0%,
-      rgba(7, 28, 24, 0.42) 62%,
-      rgba(7, 28, 24, 0) 100%
-    );
   }
 }
 
 .hero-title {
   color: var(--hero-text);
-  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.42), 0 1px 0 rgba(0, 0, 0, 0.16);
+  text-shadow: 0 3px 40px rgba(0, 0, 0, 0.42), 0 1px 0 rgba(0, 0, 0, 0.18);
 }
 .hero-tagline {
   color: var(--hero-text);
   text-shadow: 0 2px 22px rgba(0, 0, 0, 0.4);
-}
-
-@media (max-width: 767px) {
-  .hero-panel {
-    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.55);
-  }
 }
 
 .display {
@@ -233,18 +221,95 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 58% 42%, transparent 38%, rgba(6, 24, 21, 0.3) 100%),
+    radial-gradient(ellipse at 58% 42%, transparent 52%, rgba(6, 24, 21, 0.14) 100%),
     linear-gradient(180deg, rgba(255, 190, 132, 0.05) 0%, rgba(78, 125, 136, 0.06) 100%);
   mix-blend-mode: multiply;
-  opacity: 0.75;
+  opacity: 0.35;
 }
 .scene-grade::after {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.055;
+  opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.65'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
+}
+
+/* ---- loading screen -------------------------------------------------- */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #9fc6d6 0%, #d9ddcc 55%, #5f7a5a 100%);
+  transition: opacity 0.7s ease, visibility 0.7s ease;
+}
+.loader-out {
+  opacity: 0;
+  visibility: hidden;
+}
+.loader-inner {
+  width: min(340px, 74vw);
+  text-align: center;
+  color: var(--emerald);
+}
+.loader-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.loader-cable {
+  stroke: rgba(11, 43, 36, 0.35);
+  stroke-width: 2;
+}
+.loader-ride {
+  animation: loader-ride 3.4s ease-in-out infinite alternate;
+}
+.loader-sway {
+  animation: loader-sway 2.2s ease-in-out infinite alternate;
+  transform-origin: 0 26px;
+}
+@keyframes loader-ride {
+  from { transform: translateX(-46px); }
+  to { transform: translateX(46px); }
+}
+@keyframes loader-sway {
+  from { transform: rotate(-3deg); }
+  to { transform: rotate(3deg); }
+}
+.loader-name {
+  margin-top: 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.loader-bar {
+  height: 4px;
+  margin-top: 1rem;
+  border-radius: 999px;
+  background: rgba(11, 43, 36, 0.18);
+  overflow: hidden;
+}
+.loader-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--emerald);
+  transform-origin: left center;
+  transition: transform 0.3s ease;
+}
+.loader-pct {
+  margin-top: 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+@media (prefers-reduced-motion: reduce) {
+  .loader-ride, .loader-sway { animation: none; }
+  .loader { transition: none; }
 }
 
 /* ---- content surfaces ------------------------------------------------ */
@@ -255,20 +320,10 @@ body {
   padding: clamp(1.4rem, 3vw, 2.4rem);
   clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
 }
-.scene-fade-in {
-  background: linear-gradient(
-    to bottom,
-    rgba(242, 231, 212, 0) 0%,
-    rgba(242, 231, 212, 0.86) 10%,
-    #f2e7d4 18%,
-    #f2e7d4 100%
-  );
-}
-
 .panel-dark {
   color: var(--hero-text);
   padding: clamp(1.05rem, 1.8vw, 1.5rem) clamp(1.2rem, 2vw, 1.6rem);
-  background: rgba(7, 28, 24, 0.58);
+  background: rgba(7, 28, 24, 0.56);
   border: 1px solid rgba(248, 242, 228, 0.14);
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(12px) saturate(1.1);

@@ -1,4 +1,5 @@
 import { EVENT } from "@/lib/config";
+import Loader from "@/components/Loader";
 import SceneLayer from "@/components/SceneLayer";
 import ScrollController from "@/components/ScrollController";
 import Navigation from "@/components/Navigation";
@@ -16,6 +17,7 @@ export default function Page() {
         Skip to content
       </a>
 
+      <Loader />
       <SceneLayer />
       <ScrollController />
       <Navigation />

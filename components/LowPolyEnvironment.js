@@ -48,15 +48,18 @@ export default function LowPolyEnvironment({ quality = 1 }) {
   const sunRef = useRef();
   const hemiRef = useRef();
 
-  const terrain = useMemo(
-    () =>
-      buildTerrainGeometry({
-        ...TERRAIN,
-        heightFn: heightAt,
-        seed: 7,
-      }),
-    []
-  );
+  const terrain = useMemo(() => {
+    // Coarser grid on weaker hardware; the silhouette barely changes but the
+    // triangle count drops by more than half on the low tier.
+    const k = quality >= 0.9 ? 1 : quality >= 0.5 ? 0.75 : 0.5;
+    return buildTerrainGeometry({
+      ...TERRAIN,
+      segW: Math.max(24, Math.round(TERRAIN.segW * k)),
+      segD: Math.max(18, Math.round(TERRAIN.segD * k)),
+      heightFn: heightAt,
+      seed: 7,
+    });
+  }, [quality]);
   const terrainMat = useMemo(() => {
     const m = toonVertexColors();
     // A soft paper-grain variation across the hills, so large slopes do not
@@ -154,10 +157,16 @@ export default function LowPolyEnvironment({ quality = 1 }) {
 
       <Backdrop />
       <Sun />
+      {/* Solid ground under the world so no sky/void can show through the gap
+          between the terrain edge and the distant ranges. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -6.4, -45]} renderOrder={-0.2}>
+        <planeGeometry args={[640, 640]} />
+        <meshBasicMaterial color="#41604b" fog />
+      </mesh>
       <mesh geometry={terrain} material={terrainMat} receiveShadow />
       <Mountain />
       <Forest count={Math.round(900 * quality)} seed={3} />
-      <Waterfall />
+      <Waterfall rows={quality >= 0.9 ? 220 : quality >= 0.5 ? 150 : 110} />
       <Undergrowth count={Math.round(180 * quality)} />
       <Flowers count={Math.round(90 * quality)} />
       <ShadowCaster>
@@ -166,10 +175,10 @@ export default function LowPolyEnvironment({ quality = 1 }) {
       </ShadowCaster>
       <GodRays />
       <Mist />
-      <Fireflies count={quality < 0.5 ? 12 : quality < 1 ? 24 : 48} />
+      <Fireflies count={quality < 1 ? 24 : 48} />
       <CampfireSparks />
-      <Clouds count={quality < 0.5 ? 3 : quality < 1 ? 6 : 11} />
-      <Birds count={quality < 0.5 ? 2 : quality < 1 ? 4 : 9} />
+      <Clouds count={quality < 1 ? 6 : 11} />
+      <Birds count={quality < 1 ? 4 : 9} />
     </>
   );
 }
