@@ -6,38 +6,37 @@ Dates, venue, prizes, people and sponsors are **proposed / to be confirmed**. Se
 
 ## Quick start
 ```sh
-node scripts/get-three.mjs     # once, needs internet: downloads three.js r160 into public/vendor/
-python3 tools/serve.py         # http://localhost:8080  (ES modules need http, not file://)
+npm install          # three.js and Vite
+npm run dev          # http://localhost:5173 with hot reload
+npm run build        # generates pages, bundles to dist/
 ```
-Without the vendor file the site falls back to CDNs.
+Needs Node 20+. Commit the `package-lock.json` that `npm install` creates.
 
 ## Layout
 ```
-public/            everything that gets deployed
-  index.html       the 3D page
-  js/              config.js (edit me) · main · ui · world (3D) · form · calendar · share · telemetry · pages
-  css/             style.css (3D page) · pages.css (info pages)
-  assets/ vendor/  icons, OG image, three.js
-  schedule/ faq/ … generated info pages (do not edit by hand)
+index.html and <slug>/   under src/: the 3D page and the generated info pages
+src/js/            config.js (edit me) · main · ui · world (3D, own chunk) · form · calendar · share · telemetry · pages
+src/css/           style.css (3D page) · pages.css (info pages)
+public/            copied as-is: icons, OG image, manifest, robots, sitemap, _headers, 404
 data/event.json    single source of truth for the info pages
-scripts/           build-pages · check-links · get-three · get-fonts
-tests/             smoke.mjs (headless browser, every page)
+scripts/           build-pages · check-links · get-fonts
+tests/             smoke.mjs (headless browser, every page of dist/)
 backend/           optional Google Apps Script form receiver
-docs/              ROADMAP · CONTENT-TODO · ARCHITECTURE
-tools/             local dev server
+docs/              ARCHITECTURE · ROADMAP · CONTENT-TODO
+vite.config.js     multi-page Vite build, three.js split into its own chunk
 ```
 
 ## Everyday tasks
 | Task | Command |
 |---|---|
-| Edit event info, then regenerate pages + sitemap | `npm run build` |
+| Edit event info, then regenerate pages + sitemap | `npm run pages` |
 | Check internal links | `npm run links` |
-| Smoke-test every page (needs `npm i -D playwright`) | `npm test` |
+| Build and smoke-test every page | `npm test` |
 | Self-host fonts | `npm run fonts` |
 
 Site-wide settings (dates, registration status, form endpoint, analytics, contact) live in `public/js/config.js`.
 
 ## Deploy
-Upload `public/` to any static host. `vercel.json` (Vercel) and `public/_headers` (Netlify / Cloudflare Pages) set caching and security headers. Set your real domain in `config.js` and `data/event.json` (`siteUrl`), then `npm run build`.
+Run `npm run build` and upload `dist/` to any static host (serve from the domain root). `vercel.json` and `public/_headers` set caching and security headers. Set your real domain in `config.js` and `data/event.json` (`siteUrl`) first.
 
 See `docs/ARCHITECTURE.md` for how the 3D scene and the phone quality ladder work, and `CONTRIBUTING.md` for the workflow.

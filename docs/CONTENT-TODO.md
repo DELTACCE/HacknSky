@@ -9,4 +9,4 @@ Everything below is a placeholder in `data/event.json` / `js/config.js`. Edit, t
 - [ ] Real domain: `siteUrl` in config.js and event.json, then rebuild (sitemap, canonical, OG)
 - [ ] Review privacy, terms, code of conduct and rules with the institution (drafts only)
 - [ ] Deploy `backend/google-apps-script.gs` and set `formEndpoint`; set `analyticsEndpoint` if wanted
-- [ ] Run `node scripts/get-three.mjs` and `node scripts/get-fonts.mjs` so nothing loads from a CDN
+- [ ] Run `npm run fonts` so fonts are self-hosted, then link `css/fonts.css` and drop the Google Fonts links
