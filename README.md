@@ -1,12 +1,12 @@
 # HacknSky
 
-Website for **HacknSky**, a two-day destination hackathon at Athirappilly Falls, Kerala (DELTA × DATARA’27, Christ College of Engineering, Dept. of CSE (Data Science)). A toon-shaded 3D valley you scroll through, plus plain info pages. Static, no build step for the site itself.
+Website for **HacknSky**, a two-day destination hackathon at Athirappilly Falls, Kerala (DELTA × DATARA’27, Christ College of Engineering, Dept. of CSE (Data Science)). A toon-shaded 3D valley you scroll through, plus plain info pages. The Vite build deploys to a static host.
 
 Dates, venue, prizes, people and sponsors are **proposed / to be confirmed**. See `docs/CONTENT-TODO.md`.
 
 ## Quick start
 ```sh
-npm install          # three.js and Vite
+npm install          # Three.js, React Three Fiber and Vite
 npm run dev          # http://localhost:5173 with hot reload
 npm run build        # generates pages, bundles to dist/
 ```

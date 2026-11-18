@@ -9,6 +9,7 @@ for (const d of readdirSync(root, { withFileTypes: true })) if (d.isDirectory() 
 
 export default defineConfig({
   root,
+  esbuild: { jsx: "automatic" },
   publicDir: resolve(import.meta.dirname, "public"),
   build: {
     outDir: resolve(import.meta.dirname, "dist"), emptyOutDir: true, target: "es2020", chunkSizeWarningLimit: 700,

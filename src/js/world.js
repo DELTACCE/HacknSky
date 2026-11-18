@@ -2,15 +2,12 @@
 // in-world 3D captions, camera journey and the quality ladder. three.js comes from npm and is tree-shaken by the bundler.
 import * as THREE from "three";
 import { CONFIG, $, $$, ROOT, CH, TRACKS, Game, bootT0, loadout, show, boot, showError, failWorld, enter, setSquad, pad, track } from "./ui.js";
+import { mountValleyDetails } from "./valley/ValleyDetails.jsx";
 
 export async function startWorld() {
   show(30, "Loading fonts");
   { const f0 = getComputedStyle(document.body).fontFamily.split(",")[0].trim(); // fonts are part of the loader now, so the lettering never pops in late
     await Promise.race([Promise.all([600, 700, 800].map((w) => document.fonts.load(`${w} 100px ${f0}`))), new Promise((r) => setTimeout(r, 3500))]).catch(() => {}); show(37, "Loading fonts"); }
-  const probe = document.createElement("canvas");
-  const hasGL = !!(probe.getContext("webgl2") || probe.getContext("webgl"));
-  if (!hasGL) { failWorld("WebGL is unavailable on this device."); return; }
-
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const coarse = matchMedia("(pointer: coarse)").matches || Math.min(screen.width, screen.height) < 700; // phones and small tablets get the lighter scene
   const canvas = $("#gl");
@@ -59,7 +56,7 @@ export async function startWorld() {
     m.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace("#include <begin_vertex>", "vec3 transformed = position + normalize(normal) * " + th.toFixed(3) + ";"); };
     m.customProgramCacheKey = () => "ink" + th; return m; };
   const outlines = []; // every ink-outline hull, so a slow device can switch them all off at once
-  const addOutline = (mesh, th = 0.07, keep = false) => { const o = new THREE.Mesh(smoothGeo(mesh.geometry), outlineMat(th)); mesh.add(o); if (!keep) outlines.push(o); return o; }; // keep: part of the signature look (waterfall foam), never dropped by the quality ladder
+  const addOutline = (mesh, th = 0.07) => { const o = new THREE.Mesh(smoothGeo(mesh.geometry), outlineMat(th)); mesh.add(o); outlines.push(o); return o; };
 
   // ---- world layout -----------------------------------------------------
   const FALL_Z = -34, PLATEAU = 22, VALLEY = 3.5;
@@ -221,8 +218,8 @@ export async function startWorld() {
     scene.add(new THREE.Mesh(g, waterMat));
   }
 
-  // ---- the waterfall: one wide unbroken sheet, soft falling streaks, big cartoon foam clouds at the base
-  const splash = [];
+  // ---- waterfall curtain: continuous with the river mesh, with Fiber detail layered over it
+  let curtain;
   {
     // same material, width and flow as the river so the falls read as the river itself tipping over the edge
     const HALFW = 4.4, COLS = 12, ROWS = 44, ZA = RIB.Z0 + RIB.A * RIB.STEP, ZB = RIB.Z0 + RIB.B * RIB.STEP, pos = [], uv = [], fl = [], idx = []; let run = RIB.run[RIB.A], pz = 0, py = 0;
@@ -233,11 +230,8 @@ export async function startWorld() {
       for (let i = 0; i <= COLS; i++) { const u = i / COLS; pos.push(cx + (u - 0.5) * 2 * HALFW, yy, zz); uv.push(u, run); fl.push(f); } }
     for (let j = 0; j < ROWS; j++) for (let i = 0; i < COLS; i++) { const a = j * (COLS + 1) + i, b = a + COLS + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute("flow", new THREE.Float32BufferAttribute(fl, 1)); g.setIndex(idx);
-    const curtain = new THREE.Mesh(g, waterMat); curtain.frustumCulled = false; scene.add(curtain);
-    // foam clouds: big toon puffs where the water lands
-    const baseZ = FALL_Z + 4.2, bx = riverX(baseZ), by = waterY(baseZ) + 0.25, fm = toonMat({ color: 0xffffff, emissive: 0xa8dcff, emissiveIntensity: 0.3 });
-    for (let i = 0; i < 12; i++) { const u = (i + 0.5) / 12, rad = 1.5 + ((i * 7) % 5) * 0.35, b = new THREE.Mesh(new THREE.IcosahedronGeometry(rad, 1), fm);
-      b.position.set(bx + (u - 0.5) * 8.4 + Math.sin(i * 2.1) * 0.6, by + 0.5 + (i % 3) * 0.35, baseZ + 0.4 + Math.cos(i * 1.7) * 0.9); b.scale.set(1, 0.8, 1); addOutline(b, 0.05, true); scene.add(b); splash.push(b); } }
+    curtain = new THREE.Mesh(g, waterMat); curtain.frustumCulled = false; scene.add(curtain);
+  }
 
   // ---- mist at the foot of the falls + drifting fireflies ----------------
   function softTex() { const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -506,8 +500,9 @@ export async function startWorld() {
 
   function makeCabin() {
     const L = [], GL = [], INK = "#12201b", CREAM = "#eadcb9", LIME = "#c6f04e", RED = "#c4442a", WOODC = "#8a5e34", STEEL = "#9aa3a0";
-    // grip clamped on the rope (the rope passes through it) with two sheave wheels on top
-    box(L, 1.1, 0.5, 0.62, 0, 0, 0, INK); for (const s of [-1, 1]) L.push({ g: new THREE.CylinderGeometry(0.27, 0.27, 0.16, 10), m: M4(s * 0.62, 0.33, 0, 1, 1, 1, 0, 0, Math.PI / 2), c: STEEL });
+    // Grip clamped on the rope; the rotating sheaves are mounted in Gondola.jsx.
+    box(L, 1.1, 0.5, 0.62, 0, 0, 0, INK);
+    for (const s of [-1, 1]) box(L, .15, .2, .35, s * .62, .17, 0, STEEL);
     box(L, 1.7, 0.14, 0.2, 0, 0.3, 0, "#3d4a46");
     // one solid stem from the grip down to the roof, braced to the roof beam by two struts that meet it exactly
     box(L, 0.34, 2.45, 0.34, 0, -1.5, 0, INK);
@@ -842,6 +837,19 @@ export async function startWorld() {
   await Promise.race([Promise.all([document.fonts.load(`800 100px ${first}`), document.fonts.load(`600 100px ${first}`)]), new Promise((r) => setTimeout(r, 3000))]).catch(() => {});
   fam = famCss; resize();
   if (!capKey) { capKey = portrait + "|" + aspect; try { buildCaptions(); } catch (e) { showError("3D captions failed: " + e.message); } }
+  await boot(95, "Detailing the landmarks");
+  const motion = { time: 0, stage: 0, cablePosition: .5, quality: coarse ? 1 : 0, reduced, coarse };
+  const landmarks = await mountValleyDetails({
+    canvas, renderer, scene, camera, motion, cabins: [cabinA, cabinB],
+    falls: { curtain, ground, riverX, waterY, fallZ: FALL_Z, gradientMap: gradMap },
+  });
+  let contextLost = false;
+  canvas.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    contextLost = true;
+    landmarks.dispose();
+    failWorld("The 3D scene lost its graphics connection. You can still read the plain page.");
+  }, { once: true });
   await boot(97, "Compiling shaders");
   try { camera.position.set(8, 17, 46); camera.lookAt(-2, 11, -16); if (renderer.compileAsync && renderer.extensions.has("KHR_parallel_shader_compile")) await renderer.compileAsync(scene, camera); else renderer.compile(scene, camera); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camera); } catch (e) { showError("Render warm-up failed: " + e.message); }
   await boot(100, "World ready");
@@ -852,6 +860,7 @@ export async function startWorld() {
   const dprFloor = Math.min(dprMax, coarse ? 1.25 : 0.8), setPR = (v) => { dprNow = Math.max(dprFloor, v); renderer.setPixelRatio(dprNow); renderer.setSize(innerWidth, innerHeight, false); };
   let lowGfx = false; try { lowGfx = localStorage.getItem("hns-gfx") === "low"; } catch (e) { /* ignore */ }
   function setQual(n) {
+    motion.quality = n;
     if (n >= 1) for (const s of treeSets) s.om.visible = false;                                  // forests lose their ink outline (halves their draw cost)
     if (n >= 2) for (const s of treeSets) { const c = Math.floor(s.list.length * 0.7); s.im.count = c; s.om.count = c; } // thin the forest
     if (n >= 3) { fireflies.visible = false; for (const d of decor) d.visible = false; for (const o of outlines) o.visible = false; } // transparent overdraw and ground clutter go next
@@ -859,6 +868,7 @@ export async function startWorld() {
     if (n >= 5) halfRate = true;
   }
   function frame() {
+    if (contextLost || ROOT.classList.contains("nogl")) return;
     requestAnimationFrame(frame); if (document.hidden) { clock.getDelta(); return; }
     const raw = clock.getDelta(); if (halfRate) { skipF = !skipF; if (skipF) { pendDt += raw; return; } } // weakest tier: render every other frame, a steady 30 beats a stuttery 60
     const dt = Math.min(raw + pendDt, 0.1), time = clock.elapsedTime; pendDt = 0;
@@ -868,7 +878,7 @@ export async function startWorld() {
     if (accN >= 30) { const avg = accT / accN; accT = accN = 0;
       if (++warmW > 2) { slowW = avg > 0.024 ? slowW + 1 : 0; if (slowW >= 1 && qual < 5) { qual++; slowW = 0; setQual(qual); track("quality_tier", { n: qual, avgMs: Math.round(avg * 1000) }); } } }
     const sy = scrollY; updateBeats(sy);
-    const target = stageAt(sy); smooth = reduced ? target : smooth + (target - smooth) * (1 - Math.exp(-dt * 5.5)); stage = smooth; cabU = cabinU(stage, time);
+    const target = stageAt(sy); smooth = reduced ? target : smooth + (target - smooth) * (1 - Math.exp(-dt * 5.5)); stage = smooth; cabU = reduced ? .42 : cabinU(stage, time);
     const p = pose(stage, portrait, time);
     if (intro0 === null) intro0 = time; // opening swoop: drop in from high above onto the hero view
     const it = reduced ? 1 : clamp((time - intro0) / 3.6, 0, 1), lift = Math.pow(1 - it, 3) * (1 - sm(0, 0.5, stage));
@@ -883,8 +893,8 @@ export async function startWorld() {
     const floor = ground(p.pos.x, p.pos.z) + 2.5; if (p.pos.y < floor) p.pos.y = floor; // never dip into the terrain
     camera.position.copy(p.pos); camera.lookAt(p.tgt);
     // cabins: A is the one the camera follows; B passes it going the other way
-    const u = cabU; placeCabin(cabinA, u, time, 0, -3.2); placeCabin(cabinB, 1 - u, time, 2, 3.2);
-    waterUniforms.time.value = time;
+    const u = cabU; placeCabin(cabinA, u, reduced ? 0 : time, 0, -3.2); placeCabin(cabinB, 1 - u, reduced ? 0 : time, 2, 3.2);
+    waterUniforms.time.value = reduced ? 0 : time;
     for (const t of totems) { const sel = Game.squad === t.k, up = sel ? 1.35 : (hoverK === t.k || focus === t.k) ? 1.2 : 1; t.s += (up - t.s) * (1 - Math.exp(-dt * 6)); t.crystal.scale.setScalar(t.s);
       if (!reduced) { t.crystal.rotation.y = time * (focus === t.k ? 3 : 1.2) + t.k; t.crystal.position.y = 6.2 + Math.sin(time * 1.6 + t.k) * 0.25; for (const r of t.rotorMeshes) r.rotation.y = time * 40; }
       t.beam.visible = sel; if (sel) t.beam.material.opacity = 0.2 + 0.07 * Math.sin(time * 3); }
@@ -895,19 +905,20 @@ export async function startWorld() {
       ffGeo.attributes.position.needsUpdate = true; fireflies.material.opacity = 0.55 + 0.35 * Math.sin(time * 1.3);
       clouds.forEach((c, i) => { c.position.x += dt * (0.5 + (i % 3) * 0.25); if (c.position.x > 170) c.position.x = -170; });
       birds.forEach((b) => { const d = b.userData, a = time * d.s + d.p; b.position.set(d.cx + Math.cos(a) * d.r, d.y + Math.sin(a * 2) * 1.5, d.cz + Math.sin(a) * d.r * 0.6); b.rotation.y = -a + Math.PI / 2; b.rotation.z = Math.sin(time * 6 + d.p) * 0.35; });
-      splash.forEach((b, i) => { const s = 1 + 0.14 * Math.sin(time * 3 + i * 1.7); b.scale.set(s, 0.8 * (1 + 0.14 * Math.sin(time * 2.3 + i)), s); });
       fireLight.intensity = 12 + Math.sin(time * 9) * 2 + Math.sin(time * 23) * 1.2; fireMesh.scale.y = 1 + Math.sin(time * 11) * 0.12;
     }
     if (capQ.length) { const id = capQ.shift(); if (!captions[id] && specsNow[id]) buildOne(id, specsNow[id]); }
     animateCaptions(dt, time);
     renderer.shadowMap.needsUpdate = (shadowTick++ % 3) === 0; // cabins and crystals move slowly: a shadow refresh every 3rd frame is invisible
-    renderer.render(scene, camera);
+    motion.time = time;
+    motion.stage = stage;
+    motion.cablePosition = u;
+    landmarks.render(time);
   }
   if (lowGfx || (coarse && ((navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4))) { qual = 5; setQual(5); } else if (coarse) { qual = 1; setQual(1); } // weak device or Low: everything off; any other phone starts without forest outlines
   const gfx = $("#gfx"); gfx.textContent = "Graphics: " + (lowGfx ? "Low" : "Auto"); gfx.onclick = () => { lowGfx = !lowGfx; try { localStorage.setItem("hns-gfx", lowGfx ? "low" : "auto"); } catch (e) { /* ignore */ } gfx.textContent = "Graphics: " + (lowGfx ? "Low" : "Auto"); if (lowGfx && qual < 5) { qual = 5; setQual(5); } else if (!lowGfx) showError("Auto graphics return next time the page loads."); };
   frame();
   await new Promise((r) => setTimeout(r, Math.max(0, 1900 - (performance.now() - bootT0)))); // let the loader play
   track("loaded", { ms: Math.round(performance.now() - bootT0), coarse, qual });
-  enter(false);
+  if (!contextLost && !ROOT.classList.contains("nogl")) enter(false);
 }
-
