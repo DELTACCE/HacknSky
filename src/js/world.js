@@ -1,21 +1,19 @@
 // HacknSky 3D world: procedural terrain, river, waterfall, forests, lodge, cable car, totems,
-// in-world 3D captions, camera journey and the quality ladder. three.js comes from npm and is tree-shaken by the bundler.
+// in-world 3D captions and camera journey. three.js comes from npm and is tree-shaken by the bundler.
 import * as THREE from "three";
-import { CONFIG, $, $$, ROOT, CH, TRACKS, Game, bootT0, loadout, show, boot, showError, failWorld, enter, setSquad, pad, track } from "./ui.js";
+import { $, $$, ROOT, CH, TRACKS, Game, bootT0, show, boot, showError, failWorld, enter, setSquad, pad, track } from "./ui.js";
 import { mountValleyDetails } from "./valley/ValleyDetails.jsx";
 
-export async function startWorld() {
+export async function startWorld(profile) {
   show(30, "Loading fonts");
   { const f0 = getComputedStyle(document.body).fontFamily.split(",")[0].trim(); // fonts are part of the loader now, so the lettering never pops in late
     await Promise.race([Promise.all([600, 700, 800].map((w) => document.fonts.load(`${w} 100px ${f0}`))), new Promise((r) => setTimeout(r, 3500))]).catch(() => {}); show(37, "Loading fonts"); }
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const coarse = matchMedia("(pointer: coarse)").matches || Math.min(screen.width, screen.height) < 700; // phones and small tablets get the lighter scene
+  const light = profile !== "full", low = profile === "low";
   const canvas = $("#gl");
-  const startDpr = Math.min(devicePixelRatio, coarse ? Math.min(2, Math.max(1.25, Math.sqrt(0.8e6 / (innerWidth * innerHeight)))) : 1.75); // phones: ~1 megapixel budget, never blurry
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !(coarse && startDpr >= 1.5), powerPreference: "high-performance" }); // multisampling is costly on phone GPUs; at 1.5x+ the ink outlines already hide jaggies
-  renderer.setPixelRatio(startDpr);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !light, powerPreference: low ? "low-power" : "high-performance" });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.shadowMap.enabled = !coarse;
+  renderer.shadowMap.enabled = !light;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false; // re-rendered every few frames, not every frame
 
   const scene = new THREE.Scene();
@@ -55,8 +53,7 @@ export async function startWorld() {
   const outlineMat = (th, color = INK) => { const m = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide });
     m.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace("#include <begin_vertex>", "vec3 transformed = position + normalize(normal) * " + th.toFixed(3) + ";"); };
     m.customProgramCacheKey = () => "ink" + th; return m; };
-  const outlines = []; // every ink-outline hull, so a slow device can switch them all off at once
-  const addOutline = (mesh, th = 0.07) => { const o = new THREE.Mesh(smoothGeo(mesh.geometry), outlineMat(th)); mesh.add(o); outlines.push(o); return o; };
+  const addOutline = (mesh, th = 0.07) => { if (!low) mesh.add(new THREE.Mesh(smoothGeo(mesh.geometry), outlineMat(th))); };
 
   // ---- world layout -----------------------------------------------------
   const FALL_Z = -34, PLATEAU = 22, VALLEY = 3.5;
@@ -116,7 +113,7 @@ export async function startWorld() {
 
   await boot(14, "Shaping terrain");
   // ---- terrain ----------------------------------------------------------
-  const TX0 = -110, TX1 = 110, TZ0 = -150, TZ1 = 80, NX = 150, NZ = 160;
+  const TX0 = -110, TX1 = 110, TZ0 = -150, TZ1 = 80, NX = light ? 104 : 150, NZ = light ? 112 : 160;
   const tGeo = new THREE.PlaneGeometry(TX1 - TX0, TZ1 - TZ0, NX, NZ); tGeo.rotateX(-Math.PI / 2);
   { const p = tGeo.attributes.position;
     for (let i = 0; i < p.count; i++) { const x = p.getX(i) + (TX0 + TX1) / 2, z = p.getZ(i) + (TZ0 + TZ1) / 2; p.setXYZ(i, x, ground(x, z), z); } }
@@ -143,7 +140,7 @@ export async function startWorld() {
     tGeo.setAttribute("color", new THREE.BufferAttribute(col, 3)); tGeo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
   }
   // tileable painterly detail map: soft blotches and tiny blade flecks, multiplied over the vertex colours
-  const detailTex = (() => { const S = 256, cv = document.createElement("canvas"); cv.width = cv.height = S; const x = cv.getContext("2d"), rr = mulberry(4242);
+  const detailTex = low ? null : (() => { const S = 256, cv = document.createElement("canvas"); cv.width = cv.height = S; const x = cv.getContext("2d"), rr = mulberry(4242);
     x.fillStyle = "#ececec"; x.fillRect(0, 0, S, S); const wrap = (fn) => { for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) fn(ox, oy); };
     for (let i = 0; i < 190; i++) { const px = rr() * S, py = rr() * S, r = 12 + rr() * 30, l = rr() < 0.5 ? 255 : 196, al = 0.16 + rr() * 0.14;
       wrap((ox, oy) => { const g = x.createRadialGradient(px + ox, py + oy, 0, px + ox, py + oy, r); g.addColorStop(0, `rgba(${l},${l},${l},${al})`); g.addColorStop(1, `rgba(${l},${l},${l},0)`); x.fillStyle = g; x.fillRect(px + ox - r, py + oy - r, r * 2, r * 2); }); }
@@ -237,18 +234,19 @@ export async function startWorld() {
   function softTex() { const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
     g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
   const soft = softTex();
-  const MIST_N = reduced ? 16 : coarse ? 10 : 46, mistBase = [];
+  const MIST_N = light ? 10 : reduced ? 16 : 46, mistBase = [];
   const mistGeo = new THREE.BufferGeometry(), mistPos = new Float32Array(MIST_N * 3);
   for (let i = 0; i < MIST_N; i++) mistBase.push({ x: riverX(FALL_Z) + (rand() - 0.5) * 12, y: VALLEY - 1.5 + rand() * 6, z: FALL_Z + 3 + rand() * 6, p: rand() * 6.28, s: 0.4 + rand() * 0.8 });
   mistGeo.setAttribute("position", new THREE.BufferAttribute(mistPos, 3));
-  const mist = new THREE.Points(mistGeo, new THREE.PointsMaterial({ map: soft, size: coarse ? 7 : 11, transparent: true, opacity: 0.34, depthWrite: false, color: 0xffffff, sizeAttenuation: true }));
+  mistBase.forEach((b, i) => mistPos.set([b.x, b.y, b.z], i * 3));
+  const mist = new THREE.Points(mistGeo, new THREE.PointsMaterial({ map: soft, size: light ? 7 : 11, transparent: true, opacity: 0.34, depthWrite: false, color: 0xffffff, sizeAttenuation: true }));
   mist.frustumCulled = false; scene.add(mist);
 
-  const FF_N = coarse ? 40 : 90, ffGeo = new THREE.BufferGeometry(), ffPos = new Float32Array(FF_N * 3), ffBase = [];
+  const FF_N = low || reduced ? 0 : light ? 24 : 90, ffGeo = new THREE.BufferGeometry(), ffPos = new Float32Array(FF_N * 3), ffBase = [];
   for (let i = 0; i < FF_N; i++) { const x = (rand() - 0.5) * 120, z = -40 + rand() * 90; ffBase.push({ x, y: ground(x, z) + 1.5 + rand() * 5, z, p: rand() * 6.28 }); }
   ffGeo.setAttribute("position", new THREE.BufferAttribute(ffPos, 3));
   const fireflies = new THREE.Points(ffGeo, new THREE.PointsMaterial({ map: soft, size: 1.4, transparent: true, opacity: 0.9, depthWrite: false, color: 0xe7ff7a, blending: THREE.AdditiveBlending }));
-  fireflies.frustumCulled = false; scene.add(fireflies);
+  fireflies.frustumCulled = false; if (FF_N) scene.add(fireflies);
 
   await boot(44, "Planting forests");
   // ---- forests (instanced, toon-shaded with ink outlines) ----------------------------------
@@ -275,7 +273,7 @@ export async function startWorld() {
   const occ = new Map(), CELL = 6;
   const free = (x, z, d) => { const cx = Math.floor(x / CELL), cz = Math.floor(z / CELL); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const a = occ.get((cx + i) + "," + (cz + j)); if (a) for (const [ax, az] of a) if ((ax - x) ** 2 + (az - z) ** 2 < d * d) return false; } return true; };
   const mark = (x, z) => { const k = Math.floor(x / CELL) + "," + Math.floor(z / CELL); if (!occ.has(k)) occ.set(k, []); occ.get(k).push([x, z]); };
-  const TREE_MAX = coarse ? 260 : 560; let placed = 0;
+  const TREE_MAX = low ? 120 : light ? 260 : 560; let placed = 0;
   for (let i = 0; i < 40000 && placed < TREE_MAX; i++) { // loose groves with open meadows between, never shoulder to shoulder
     const x = TX0 + 12 + rand() * (TX1 - TX0 - 24), z = -140 + rand() * 195; if (!okSpot(x, z)) continue;
     const g = fbm(x * 0.03 + 3, z * 0.03 + 8), far = Math.abs(x) > 42 || z < -60;
@@ -288,12 +286,13 @@ export async function startWorld() {
     if (Math.abs(x - riverX(z)) < 6 || blocked(x, z)) continue; trees.bush.push([x, ground(x, z), z, 0.7 + rand() * 1.0, rand() * 6.28]);
   }
   const palette = { pine: ["#ffffff", "#f0f8e4", "#e2f0da", "#f7fff0"], round: ["#ffffff", "#f6f9d8", "#e6f0b8", "#fff0c0"], bush: ["#d9622f", "#e68b3a", "#c9c24a", "#a9b04a", "#bf4e3a", "#d4a63a", "#8a9c4a"] };
-  const treeSets = [], decor = []; // decor: grass and flower instances (switched off on slow devices)
+  const treeSets = [];
   function instance(geo, list, pal, th = 0.1) {
     if (!list.length) return; const im = new THREE.InstancedMesh(geo, litMat, list.length); const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
     list.forEach(([x, y, z, s, r], i) => { e.set(0, r, 0); q.setFromEuler(e); m.compose(V3(x, y, z), q, V3(s, s * (0.85 + hash2(i, 5) * 0.4), s)); im.setMatrixAt(i, m); im.setColorAt(i, C(pal[Math.floor(hash2(i, 9) * pal.length)])); });
     im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; im.castShadow = renderer.shadowMap.enabled; scene.add(im);
-    const om = new THREE.InstancedMesh(smoothGeo(geo), outlineMat(th), list.length); om.instanceMatrix = im.instanceMatrix; scene.add(om); treeSets.push({ im, list, om });
+    if (!light) { const om = new THREE.InstancedMesh(smoothGeo(geo), outlineMat(th), list.length); om.instanceMatrix = im.instanceMatrix; scene.add(om); }
+    treeSets.push({ im, list });
   }
   // keep sight-lines to the in-world text free of trunks and canopies
   const zero = new THREE.Matrix4().makeScale(0, 0, 0), segP = V3(0, 0, 0), segD = V3(0, 0, 0), segQ = V3(0, 0, 0);
@@ -307,7 +306,7 @@ export async function startWorld() {
   instance(pineGeo, trees.pine, palette.pine, 0.08); instance(roundGeo, trees.round, palette.round, 0.07); instance(bushGeo, trees.bush, palette.bush, 0.05);
 
   // grass tufts and meadow flowers: small instanced clumps that break up the flat ground
-  { const bladeClump = () => { // 5 flat leaf blades per clump: wide at the base, curving over, pointed tip, light tips on dark roots
+  if (!low) { const bladeClump = () => { // 5 flat leaf blades per clump: wide at the base, curving over, pointed tip, light tips on dark roots
       const pos = [], col = [], nor = [], c0 = C("#4c8c34"), c1 = C("#a8de66"), tc = C("#000"), SEG = 3, N = 5;
       for (let b = 0; b < N; b++) { const a = b / N * 6.283 + b * 0.7, ca = Math.cos(a), sa = Math.sin(a), lean = 0.5 + (b % 2) * 0.35, h = 0.5 + ((b * 37) % 5) * 0.07, w = 0.13, ring = [];
         for (let s = 0; s <= SEG; s++) { const t = s / SEG, wd = w * Math.pow(1 - t, 0.8), r = 0.05 + lean * t * t * h * 0.9, y = h * t;
@@ -321,9 +320,9 @@ export async function startWorld() {
     const spots = (n, tries) => { const out = []; for (let i = 0; i < tries && out.length < n; i++) { const x = TX0 + 10 + rand() * (TX1 - TX0 - 20), z = -120 + rand() * 170; if (blocked(x, z) || Math.abs(x - riverX(z)) < 6.5) continue;
         const y = ground(x, z); if (y > 36 || slopeAt(x, z) > 0.45) continue; out.push([x, y, z, 0.8 + rand() * 0.7, rand() * 6.28]); } return out; };
     const mkInst = (geo, list, pal, mat = litMat) => { const im = new THREE.InstancedMesh(geo, mat, list.length), mm = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
-      list.forEach(([x, y, z, s, r], i) => { e.set(0, r, 0); q.setFromEuler(e); mm.compose(V3(x, y, z), q, V3(s, s, s)); im.setMatrixAt(i, mm); im.setColorAt(i, C(pal[Math.floor(hash2(i, 31) * pal.length)])); }); im.receiveShadow = false; scene.add(im); decor.push(im); };
-    mkInst(tuftGeo, spots(coarse ? 600 : 1800, 9000), ["#ffffff", "#eef9d4", "#dff2b0", "#f6ffe0"], grassMat);
-    mkInst(flowerGeo, spots(coarse ? 100 : 380, 4000), ["#ff9bbd", "#ffe066", "#ffffff", "#a8d4ff", "#ffb070"]); }
+      list.forEach(([x, y, z, s, r], i) => { e.set(0, r, 0); q.setFromEuler(e); mm.compose(V3(x, y, z), q, V3(s, s, s)); im.setMatrixAt(i, mm); im.setColorAt(i, C(pal[Math.floor(hash2(i, 31) * pal.length)])); }); im.receiveShadow = false; scene.add(im); };
+    mkInst(tuftGeo, spots(light ? 360 : 1800, 9000), ["#ffffff", "#eef9d4", "#dff2b0", "#f6ffe0"], grassMat);
+    mkInst(flowerGeo, spots(light ? 80 : 380, 4000), ["#ff9bbd", "#ffe066", "#ffffff", "#a8d4ff", "#ffb070"]); }
 
   // ---- building helpers ---------------------------------------------------
   const box = (L, w, h, d, x, y, z, c, ry = 0) => L.push({ g: new THREE.BoxGeometry(w, h, d), m: M4(x, y, z, 1, 1, 1, ry), c });
@@ -377,7 +376,7 @@ export async function startWorld() {
     const fx = LODGE.x + 8, fz = LODGE.z + 11, fy = ground(fx, fz), f = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.4, 5), new THREE.MeshBasicMaterial({ color: 0xffa233 }));
     f.position.set(fx, fy + 0.8, fz); scene.add(f);
     const lg = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.3, 0.35, 8), toonMat({ color: 0x6b6258, flatShading: true })); lg.position.set(fx, fy + 0.15, fz); scene.add(lg);
-    var fireLight = new THREE.PointLight(0xff9a3c, 14, 16, 1.6); fireLight.position.set(fx, fy + 1.6, fz); scene.add(fireLight); var fireMesh = f; if (coarse) fireLight.visible = false; // a dynamic light costs every lit pixel on a phone; the flame itself stays
+    var fireLight = light ? null : new THREE.PointLight(0xff9a3c, 14, 16, 1.6); if (fireLight) { fireLight.position.set(fx, fy + 1.6, fz); scene.add(fireLight); } var fireMesh = f;
     const inner = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.9, 5), new THREE.MeshBasicMaterial({ color: 0xffe066 })); inner.position.y = -0.18; f.add(inner);
     const Lf = []; for (let i = 0; i < 11; i++) { const a = (i / 11) * 6.283; Lf.push({ g: new THREE.IcosahedronGeometry(0.36, 0), m: M4(Math.cos(a) * 1.5, 0.2, Math.sin(a) * 1.5, 1, 0.8, 1, i), c: i % 2 ? "#8d887c" : "#a39e92" }); }
     for (const a of [0.4, 2.2, 4.0, 5.4]) Lf.push({ g: new THREE.CylinderGeometry(0.3, 0.3, 2.4, 8), m: M4(Math.cos(a) * 3.3, 0.35, Math.sin(a) * 3.3, 1, 1, 1, -a, 0, Math.PI / 2), c: "#8a5e34" });
@@ -606,7 +605,7 @@ export async function startWorld() {
   Game.onSquad.push(() => { /* highlight handled per frame */ });
 
   // ---- in-world captions (MiSide style) -------------------------------------
-  const PX = coarse ? { black: 104, semi: 54 } : { black: 150, semi: 76 }, WGT = { black: 800, semi: 600 }, CAP_MID = 0.35;
+  const PX = light ? { black: 104, semi: 54 } : { black: 150, semi: 76 }, WGT = { black: 800, semi: 600 }, CAP_MID = 0.35;
   const WARM = "#fffaf0", CREAM = "#fbf5e7", LIME = "#c6f04e", PALE = "#dcf58a";
   const eyebrow = { font: "semi", ls: 0.16, c0: WARM, c1: CREAM, unit: "word", outline: 0.14 };
   const label = { font: "semi", ls: 0.2, c0: "#e3fb8f", c1: LIME, unit: "word", outline: 0.14 };
@@ -669,7 +668,8 @@ export async function startWorld() {
   function measureLine(ctx, l, fam) {
     const px = PX[l.font], ls = (l.ls || 0) * px; ctx.font = fontOf(l.font, fam);
     const adv = (n) => ctx.measureText(l.t.slice(0, n)).width + n * ls, spans = [];
-    if (l.unit === "char") { for (let i = 0; i < l.t.length; i++) if (l.t[i] !== " ") spans.push([i, i + 1]); }
+    if (light) spans.push([0, l.t.length]); // one textured line, not a draw call per glyph
+    else if (l.unit === "char") { for (let i = 0; i < l.t.length; i++) if (l.t[i] !== " ") spans.push([i, i + 1]); }
     else { let i = 0; while (i < l.t.length) { if (l.t[i] === " ") { i++; continue; } let j = i; while (j < l.t.length && l.t[j] !== " ") j++; spans.push([i, j]); i = j; } }
     return { emW: (adv(l.t.length) - ls) / px, units: spans.map(([a, b]) => ({ t: l.t.slice(a, b), x0: adv(a) / px, w: (adv(b) - ls - adv(a)) / px })) };
   }
@@ -712,6 +712,7 @@ export async function startWorld() {
   let captions = {}, fam = null, portrait = false, aspect = 1;
   let specsNow = {}, mctx = null;
   function buildCaptions() { // texture work is lazy: only the captions near the current chapter exist at any time
+    textRoot.traverse((node) => { if (node.isMesh) { node.material.map.dispose(); node.material.dispose(); } });
     textRoot.clear(); captions = {}; capQ.length = 0; if (!fam) return;
     mctx = document.createElement("canvas").getContext("2d"); specsNow = getSpecs(portrait); ensureCaptions(Math.max(curCh, 0)); clearForText();
   }
@@ -821,7 +822,10 @@ export async function startWorld() {
   let capKey = "";
   let rW = 0, rH = 0;
   function resize() {
-    const w = innerWidth, h = innerHeight; if (rW && w === rW && Math.abs(h - rH) < rH * 0.22) return; rW = w; rH = h; renderer.setSize(w, h, false); portrait = w / h < 0.9; aspect = Math.round((w / h) * 20) / 20 || 1;
+    const w = innerWidth, h = innerHeight; if (rW && w === rW && (h === rH || (light && Math.abs(h - rH) < rH * 0.22))) return; rW = w; rH = h;
+    const pixels = low ? 0.5e6 : light ? 0.9e6 : 4e6;
+    renderer.setDrawingBufferSize(w, h, Math.min(devicePixelRatio, low ? 1.25 : 1.75, Math.sqrt(pixels / (w * h))));
+    portrait = w / h < 0.9; aspect = Math.round((w / h) * 20) / 20 || 1;
     camera.aspect = w / h; camera.fov = portrait ? 58 : 45; camera.updateProjectionMatrix(); measure();
     const key = portrait + "|" + aspect; if (fam && key !== capKey) { capKey = key; buildCaptions(); }
   }
@@ -833,12 +837,10 @@ export async function startWorld() {
 
   // wait for the page font, then build every caption texture once
   await boot(92, "Lettering the world");
-  const famCss = getComputedStyle(document.body).fontFamily, first = famCss.split(",")[0].trim();
-  await Promise.race([Promise.all([document.fonts.load(`800 100px ${first}`), document.fonts.load(`600 100px ${first}`)]), new Promise((r) => setTimeout(r, 3000))]).catch(() => {});
-  fam = famCss; resize();
+  fam = getComputedStyle(document.body).fontFamily; resize();
   if (!capKey) { capKey = portrait + "|" + aspect; try { buildCaptions(); } catch (e) { showError("3D captions failed: " + e.message); } }
   await boot(95, "Detailing the landmarks");
-  const motion = { time: 0, stage: 0, cablePosition: .5, quality: coarse ? 1 : 0, reduced, coarse };
+  const motion = { time: 0, stage: 0, cablePosition: .5, quality: low ? 5 : light ? 1 : 0, reduced, coarse: light };
   const landmarks = await mountValleyDetails({
     canvas, renderer, scene, camera, motion, cabins: [cabinA, cabinB],
     falls: { curtain, ground, riverX, waterY, fallZ: FALL_Z, gradientMap: gradMap },
@@ -856,27 +858,17 @@ export async function startWorld() {
 
   // ---- render loop -----------------------------------------------------------
   const clock = new THREE.Clock();
-  let shadowTick = 0, dprMax = renderer.getPixelRatio(), dprNow = dprMax, accT = 0, accN = 0, qual = 0, slowW = 0, warmW = 0, halfRate = false, skipF = false, pendDt = 0, perfT = 0, perfN = 0;
-  const dprFloor = Math.min(dprMax, coarse ? 1.25 : 0.8), setPR = (v) => { dprNow = Math.max(dprFloor, v); renderer.setPixelRatio(dprNow); renderer.setSize(innerWidth, innerHeight, false); };
-  let lowGfx = false; try { lowGfx = localStorage.getItem("hns-gfx") === "low"; } catch (e) { /* ignore */ }
-  function setQual(n) {
-    motion.quality = n;
-    if (n >= 1) for (const s of treeSets) s.om.visible = false;                                  // forests lose their ink outline (halves their draw cost)
-    if (n >= 2) for (const s of treeSets) { const c = Math.floor(s.list.length * 0.7); s.im.count = c; s.om.count = c; } // thin the forest
-    if (n >= 3) { fireflies.visible = false; for (const d of decor) d.visible = false; for (const o of outlines) o.visible = false; } // transparent overdraw and ground clutter go next
-    if (n >= 4) { for (const s of treeSets) { const c = Math.floor(s.list.length * 0.45); s.im.count = c; s.om.count = c; } setPR(dprNow - 0.2); } // pixels last, and never below the floor
-    if (n >= 5) halfRate = true;
-  }
+  let shadowTick = 0, frameBudget = 0, elapsed = 0, perfT = 0, perfN = 0;
   function frame() {
     if (contextLost || ROOT.classList.contains("nogl")) return;
-    requestAnimationFrame(frame); if (document.hidden) { clock.getDelta(); return; }
-    const raw = clock.getDelta(); if (halfRate) { skipF = !skipF; if (skipF) { pendDt += raw; return; } } // weakest tier: render every other frame, a steady 30 beats a stuttery 60
-    const dt = Math.min(raw + pendDt, 0.1), time = clock.elapsedTime; pendDt = 0;
-    if (!Game.started || Game.sheetOpen) { accT = accN = 0; return; } // nothing on screen to update
-    perfT += dt; perfN++; if (perfN === 600) track("perf", { avgMs: Math.round((perfT / perfN) * 1000 * 10) / 10, qual, dpr: Math.round(dprNow * 100) / 100, coarse, lowGfx, trees: treeSets.length });
-    accT += dt; accN++; // quality ladder: if frames run long, drop effects first (forest outlines, then tree count) and pixels last
-    if (accN >= 30) { const avg = accT / accN; accT = accN = 0;
-      if (++warmW > 2) { slowW = avg > 0.024 ? slowW + 1 : 0; if (slowW >= 1 && qual < 5) { qual++; slowW = 0; setQual(qual); track("quality_tier", { n: qual, avgMs: Math.round(avg * 1000) }); } } }
+    requestAnimationFrame(frame);
+    const raw = clock.getDelta();
+    if (document.hidden || !Game.started || Game.sheetOpen) { elapsed = frameBudget = 0; return; }
+    elapsed += raw;
+    if (light) { frameBudget += raw; if (frameBudget < 1 / 30) return; frameBudget %= 1 / 30; }
+    const dt = Math.min(elapsed, 0.1), time = reduced ? 0 : clock.elapsedTime;
+    perfT += elapsed; elapsed = 0;
+    if (++perfN === 600) track("perf", { avgMs: Math.round(perfT / perfN * 1000), profile, dpr: renderer.getPixelRatio() });
     const sy = scrollY; updateBeats(sy);
     const target = stageAt(sy); smooth = reduced ? target : smooth + (target - smooth) * (1 - Math.exp(-dt * 5.5)); stage = smooth; cabU = reduced ? .42 : cabinU(stage, time);
     const p = pose(stage, portrait, time);
@@ -889,7 +881,7 @@ export async function startWorld() {
       const fp = portrait ? C.clone().addScaledVector(dh, 15).add(V3(0, 3.5, 0)) : C.clone().addScaledVector(dh, 11).add(V3(0, 2.5, 0)), ft = portrait ? V3(C.x, C.y - 2.6, C.z) : C.clone().addScaledVector(rt, 4.2);
       p.pos.lerp(fp, e); p.tgt.lerp(ft, e); }
     pointer.sx += (pointer.x - pointer.sx) * (1 - Math.exp(-dt * 3)); pointer.sy += (pointer.y - pointer.sy) * (1 - Math.exp(-dt * 3));
-    const par = reduced || coarse ? 0 : 1; p.pos.x += pointer.sx * 1.6 * par; p.pos.y -= pointer.sy * 0.8 * par;
+    const par = reduced || light ? 0 : 1; p.pos.x += pointer.sx * 1.6 * par; p.pos.y -= pointer.sy * 0.8 * par;
     const floor = ground(p.pos.x, p.pos.z) + 2.5; if (p.pos.y < floor) p.pos.y = floor; // never dip into the terrain
     camera.position.copy(p.pos); camera.lookAt(p.tgt);
     // cabins: A is the one the camera follows; B passes it going the other way
@@ -902,10 +894,10 @@ export async function startWorld() {
       for (let i = 0; i < MIST_N; i++) { const b = mistBase[i], k = (time * 0.12 * b.s + b.p) % 1; mistPos[i * 3] = b.x + Math.sin(time * 0.4 + b.p) * 1.5; mistPos[i * 3 + 1] = b.y + k * 7; mistPos[i * 3 + 2] = b.z + Math.cos(time * 0.3 + b.p) * 1.5; }
       mistGeo.attributes.position.needsUpdate = true;
       for (let i = 0; i < FF_N; i++) { const b = ffBase[i]; ffPos[i * 3] = b.x + Math.sin(time * 0.3 + b.p) * 2; ffPos[i * 3 + 1] = b.y + Math.sin(time * 0.7 + b.p * 2) * 0.8; ffPos[i * 3 + 2] = b.z + Math.cos(time * 0.25 + b.p) * 2; }
-      ffGeo.attributes.position.needsUpdate = true; fireflies.material.opacity = 0.55 + 0.35 * Math.sin(time * 1.3);
+      if (FF_N) { ffGeo.attributes.position.needsUpdate = true; fireflies.material.opacity = 0.55 + 0.35 * Math.sin(time * 1.3); }
       clouds.forEach((c, i) => { c.position.x += dt * (0.5 + (i % 3) * 0.25); if (c.position.x > 170) c.position.x = -170; });
       birds.forEach((b) => { const d = b.userData, a = time * d.s + d.p; b.position.set(d.cx + Math.cos(a) * d.r, d.y + Math.sin(a * 2) * 1.5, d.cz + Math.sin(a) * d.r * 0.6); b.rotation.y = -a + Math.PI / 2; b.rotation.z = Math.sin(time * 6 + d.p) * 0.35; });
-      fireLight.intensity = 12 + Math.sin(time * 9) * 2 + Math.sin(time * 23) * 1.2; fireMesh.scale.y = 1 + Math.sin(time * 11) * 0.12;
+      if (fireLight) fireLight.intensity = 12 + Math.sin(time * 9) * 2 + Math.sin(time * 23) * 1.2; fireMesh.scale.y = 1 + Math.sin(time * 11) * 0.12;
     }
     if (capQ.length) { const id = capQ.shift(); if (!captions[id] && specsNow[id]) buildOne(id, specsNow[id]); }
     animateCaptions(dt, time);
@@ -915,10 +907,8 @@ export async function startWorld() {
     motion.cablePosition = u;
     landmarks.render(time);
   }
-  if (lowGfx || (coarse && ((navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4))) { qual = 5; setQual(5); } else if (coarse) { qual = 1; setQual(1); } // weak device or Low: everything off; any other phone starts without forest outlines
-  const gfx = $("#gfx"); gfx.textContent = "Graphics: " + (lowGfx ? "Low" : "Auto"); gfx.onclick = () => { lowGfx = !lowGfx; try { localStorage.setItem("hns-gfx", lowGfx ? "low" : "auto"); } catch (e) { /* ignore */ } gfx.textContent = "Graphics: " + (lowGfx ? "Low" : "Auto"); if (lowGfx && qual < 5) { qual = 5; setQual(5); } else if (!lowGfx) showError("Auto graphics return next time the page loads."); };
   frame();
-  await new Promise((r) => setTimeout(r, Math.max(0, 1900 - (performance.now() - bootT0)))); // let the loader play
-  track("loaded", { ms: Math.round(performance.now() - bootT0), coarse, qual });
+  await new Promise((r) => setTimeout(r, Math.max(0, 950 - (performance.now() - bootT0)))); // storybook intro minimum hold
+  track("loaded", { ms: Math.round(performance.now() - bootT0), profile });
   if (!contextLost && !ROOT.classList.contains("nogl")) enter(false);
 }
