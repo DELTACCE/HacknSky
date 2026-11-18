@@ -17,6 +17,9 @@ try {
     if (p === "") pg.on("console", (m) => { if (m.type() === "error") errs.push(m.text()); });
     await pg.goto(`${base}/${p}`);
     if (p === "") {
+      await pg.evaluate(() => localStorage.setItem("hns-intro-seen", "1"));
+      await pg.reload({ waitUntil: "domcontentloaded" });
+      await pg.locator("#intro-skip").click();
       await pg.locator("#loadout.gone").waitFor({ state: "attached", timeout: 30000 });
       await pg.locator("#gl[data-valley=ready]").waitFor();
       for (const [id, chapter] of [["destination", "02"], ["cable-car", "03"]]) {
