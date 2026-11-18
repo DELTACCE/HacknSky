@@ -1,6 +1,7 @@
 // HacknSky 3D world: procedural terrain, river, waterfall, forests, lodge, cable car, totems,
 // in-world 3D captions and camera journey. three.js comes from npm and is tree-shaken by the bundler.
 import * as THREE from "three";
+import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 import { $, $$, ROOT, CH, TRACKS, Game, bootT0, show, boot, showError, failWorld, enter, setSquad, pad, track } from "./ui.js";
 import { mountValleyDetails } from "./valley/ValleyDetails.jsx";
 
@@ -287,21 +288,32 @@ export async function startWorld(profile) {
   }
   const palette = { pine: ["#ffffff", "#f0f8e4", "#e2f0da", "#f7fff0"], round: ["#ffffff", "#f6f9d8", "#e6f0b8", "#fff0c0"], bush: ["#d9622f", "#e68b3a", "#c9c24a", "#a9b04a", "#bf4e3a", "#d4a63a", "#8a9c4a"] };
   const treeSets = [];
-  function instance(geo, list, pal, th = 0.1) {
-    if (!list.length) return; const im = new THREE.InstancedMesh(geo, litMat, list.length); const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
-    list.forEach(([x, y, z, s, r], i) => { e.set(0, r, 0); q.setFromEuler(e); m.compose(V3(x, y, z), q, V3(s, s * (0.85 + hash2(i, 5) * 0.4), s)); im.setMatrixAt(i, m); im.setColorAt(i, C(pal[Math.floor(hash2(i, 9) * pal.length)])); });
-    im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; im.castShadow = renderer.shadowMap.enabled; scene.add(im);
-    if (!light) { const om = new THREE.InstancedMesh(smoothGeo(geo), outlineMat(th), list.length); om.instanceMatrix = im.instanceMatrix; scene.add(om); }
-    treeSets.push({ im, list });
+  function instance(geo, list, pal, th = 0, mat = litMat) {
+    // A valley-wide instance bound intersects nearly every view. Local batches let
+    // Three cull independently for the camera and sun without changing the planting.
+    const patches = new Map();
+    list.forEach(([x, , z], i) => { const key = `${Math.floor(x / 40)},${Math.floor(z / 40)}`; if (!patches.has(key)) patches.set(key, []); patches.get(key).push(i); });
+    const indexed = mergeVertices(geo, 1e-6), hull = th && !light ? mergeVertices(smoothGeo(geo), 1e-6) : null;
+    const ink = hull && outlineMat(th), m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+    for (const ids of patches.values()) {
+      const im = new THREE.InstancedMesh(indexed, mat, ids.length);
+      ids.forEach((id, slot) => { const [x, y, z, s, r] = list[id]; q.setFromEuler(e.set(0, r, 0)); m.compose(V3(x, y, z), q, V3(s, th ? s * (0.85 + hash2(id, 5) * 0.4) : s, s)); im.setMatrixAt(slot, m); im.setColorAt(slot, C(pal[Math.floor(hash2(id, th ? 9 : 31) * pal.length)])); });
+      im.castShadow = !!th && renderer.shadowMap.enabled; im.computeBoundingSphere(); scene.add(im);
+      const om = hull && new THREE.InstancedMesh(hull, ink, ids.length);
+      if (om) { om.instanceMatrix = im.instanceMatrix; om.boundingSphere = im.boundingSphere.clone(); om.boundingSphere.radius += th * 3; scene.add(om); }
+      if (th) treeSets.push({ im, om, list: ids.map(id => list[id]) });
+    }
   }
   // keep sight-lines to the in-world text free of trunks and canopies
-  const zero = new THREE.Matrix4().makeScale(0, 0, 0), segP = V3(0, 0, 0), segD = V3(0, 0, 0), segQ = V3(0, 0, 0);
+  const segP = V3(0, 0, 0), segD = V3(0, 0, 0), segQ = V3(0, 0, 0);
   function clearTrees(tubes) {
-    for (const ts of treeSets) { let dirty = false;
-      ts.list.forEach((t, i) => { if (t.cut) return; segP.set(t[0], t[1] + 3, t[2]);
+    for (const ts of treeSets) { let kept = 0;
+      ts.list.forEach((t, i) => { segP.set(t[0], t[1] + 3, t[2]);
         for (const { a, b, r0, r1 } of tubes) { segD.copy(b).sub(a); const L2 = segD.lengthSq(); let u = clamp(segQ.copy(segP).sub(a).dot(segD) / L2, 0, 1); const d = segQ.copy(a).addScaledVector(segD, u).distanceTo(segP);
-          if (d < lerp(r0, r1, u)) { t.cut = true; ts.im.setMatrixAt(i, zero); dirty = true; break; } } });
-      if (dirty) ts.im.instanceMatrix.needsUpdate = true; }
+          if (d < lerp(r0, r1, u)) return; }
+        if (kept !== i) { ts.im.instanceMatrix.array.copyWithin(kept * 16, i * 16, i * 16 + 16); ts.im.instanceColor.array.copyWithin(kept * 3, i * 3, i * 3 + 3); ts.list[kept] = t; } kept++;
+      });
+      if (kept !== ts.list.length) { ts.im.count = ts.list.length = kept; if (ts.om) ts.om.count = kept; ts.im.instanceMatrix.needsUpdate = ts.im.instanceColor.needsUpdate = true; } }
   }
   instance(pineGeo, trees.pine, palette.pine, 0.08); instance(roundGeo, trees.round, palette.round, 0.07); instance(bushGeo, trees.bush, palette.bush, 0.05);
 
@@ -319,10 +331,8 @@ export async function startWorld(profile) {
     const flowerGeo = merge([{ g: new THREE.CylinderGeometry(0.025, 0.03, 0.5, 5), m: M4(0, 0.25, 0), c: "#4f8a3a" }, ...petals, { g: new THREE.IcosahedronGeometry(0.1, 0), m: M4(0, 0.52, 0), c: "#ffd23f" }], true);
     const spots = (n, tries) => { const out = []; for (let i = 0; i < tries && out.length < n; i++) { const x = TX0 + 10 + rand() * (TX1 - TX0 - 20), z = -120 + rand() * 170; if (blocked(x, z) || Math.abs(x - riverX(z)) < 6.5) continue;
         const y = ground(x, z); if (y > 36 || slopeAt(x, z) > 0.45) continue; out.push([x, y, z, 0.8 + rand() * 0.7, rand() * 6.28]); } return out; };
-    const mkInst = (geo, list, pal, mat = litMat) => { const im = new THREE.InstancedMesh(geo, mat, list.length), mm = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
-      list.forEach(([x, y, z, s, r], i) => { e.set(0, r, 0); q.setFromEuler(e); mm.compose(V3(x, y, z), q, V3(s, s, s)); im.setMatrixAt(i, mm); im.setColorAt(i, C(pal[Math.floor(hash2(i, 31) * pal.length)])); }); im.receiveShadow = false; scene.add(im); };
-    mkInst(tuftGeo, spots(light ? 360 : 1800, 9000), ["#ffffff", "#eef9d4", "#dff2b0", "#f6ffe0"], grassMat);
-    mkInst(flowerGeo, spots(light ? 80 : 380, 4000), ["#ff9bbd", "#ffe066", "#ffffff", "#a8d4ff", "#ffb070"]); }
+    instance(tuftGeo, spots(light ? 360 : 1800, 9000), ["#ffffff", "#eef9d4", "#dff2b0", "#f6ffe0"], 0, grassMat);
+    instance(flowerGeo, spots(light ? 80 : 380, 4000), ["#ff9bbd", "#ffe066", "#ffffff", "#a8d4ff", "#ffb070"]); }
 
   // ---- building helpers ---------------------------------------------------
   const box = (L, w, h, d, x, y, z, c, ry = 0) => L.push({ g: new THREE.BoxGeometry(w, h, d), m: M4(x, y, z, 1, 1, 1, ry), c });
