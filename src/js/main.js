@@ -36,10 +36,15 @@ if (plain) {
   if (introEl) introEl.remove();
   ROOT.classList.add("nogl");
   enter(true);
-} else {
-  const intro = import("./intro.js");
-  if (rb) rb.onclick = () => intro.then(({ playIntro }) => playIntro()).catch(() => {});
-  intro.then(({ initIntro }) => initIntro()).catch(() => $("#brand-intro")?.remove());
+} else if (mobile && !location.hash && mode === "auto" && !store.get("hns-intro-seen")) {
+  const choice = $("#entry-choice"); choice.showModal();
+  choice.addEventListener("close", start, { once: true }); $("#explore-3d").onclick = () => choice.close();
+} else start();
+
+function start() {
+  const play = () => import("./intro.js").then(({ playIntro }) => playIntro()).catch(() => $("#brand-intro")?.remove());
+  if (rb) rb.onclick = play;
+  if (!location.hash && !store.get("hns-intro-seen")) { store.set("hns-intro-seen", "1"); play(); }
   // the 3D engine is its own chunk, fetched while the loader shows progress
   show(4, "Loading engine");
   import("./world.js").then((m) => m.startWorld(profile)).catch((e) => failWorld("Couldn’t load the 3D scene: " + e.message));

@@ -616,7 +616,7 @@ export async function startWorld(profile) {
   const place = (P, st, d, land, port, tilt = T0) => ({ stage: st, d, tilt, ...(P ? { nx: -0.88, ny: 0.7, anchor: "top", maxW: 0.88, ...port } : { nx: -0.88, ny: 0.1, anchor: "center", maxW: 0.42, ...land }) });
   const getSpecs = (P) => ({
     hero: { ...place(P, 0, 15, { ny: 0.08, size: 0.14, maxW: 0.5 }, { size: 0.07 }), lines: [
-      { ...eyebrow, t: "ATHIRAPPILLY, KERALA  ·  15–16 JAN 2027", rel: 0.24, gap: 0.06, delay: 0 },
+      { ...eyebrow, t: "ATHIRAPPILLY, KERALA", rel: 0.24, gap: 0.06, delay: 0 },
       { ...head, t: "HacknSky", rel: 1, lh: 1.0, gap: 0.1, delay: 0.15 },
       { ...eyebrow, t: "LESS ORDINARY. MORE ALTITUDE.", rel: 0.18, unit: "char", ls: 0.2, delay: 0.75 }] },
     dest: { ...place(P, 1.0, 11, { size: 0.085, maxW: 0.4 }, { size: 0.055 }), lines: [
@@ -633,7 +633,7 @@ export async function startWorld(profile) {
     exp: { ...place(P, 3, 12, { nx: 0.12, size: 0.075, maxW: 0.38 }, { size: 0.055 }, T1), lines: [
       { ...label, t: "03 — BASE CAMP", rel: 0.26, gap: 0.1, delay: 0 },
       { ...head, t: "Build by day.", rel: 1, lh: 1.0, delay: 0.12 }, { ...head, t: "Campfire by night.", rel: 1, lh: 1.0, gap: 0.16, delay: 0.5 },
-      { ...label, t: "2 DAYS  ·  20 TEAMS  ·  2 PER TEAM", rel: 0.17, ls: 0.14, delay: 1.0 }] },
+      { ...label, t: "2 DAYS  ·  TEAMS OF 4 PROPOSED", rel: 0.17, ls: 0.14, delay: 1.0 }] },
     trk: { ...place(P, 4, 12, { ny: -0.88, anchor: "bottom", size: 0.06, maxW: 0.4 }, { ny: 0.8, size: 0.045 }), lines: [
       { ...label, t: "04 — CHOOSE YOUR ALTITUDE", rel: 0.26, gap: 0.1, delay: 0 },
       { ...head, t: "Four totems.", rel: 1, lh: 1.0, delay: 0.12 }, { ...head, t: "One squad.", rel: 1, lh: 1.0, gap: 0.14, delay: 0.4 },
@@ -656,7 +656,7 @@ export async function startWorld(profile) {
     reg: { ...place(P, 8, 16, { size: 0.09, maxW: 0.46 }, { size: 0.05, nx: -0.76, ny: 0.6, maxW: 0.74 }, P ? [0, 0, 0] : T0), lines: [
       { ...label, t: "08 — YOUR CABIN", rel: 0.26, gap: 0.1, delay: 0 },
       { ...head, t: "Ready to", rel: 1, lh: 1.0, delay: 0.12 }, { ...head, t: "ascend?", rel: 1, lh: 1.0, gap: 0.14, delay: 0.4 },
-      { ...body, t: "Register interest. No commitment yet.", rel: 0.3, lh: 1.3, delay: 0.85 }] },
+      { ...body, t: "Check registration availability.", rel: 0.3, lh: 1.3, delay: 0.85 }] },
   });
   const caps = {}; // beat id -> "out" | "in" | "gone"
   const OCCLUDE = true, ENTER = 0.8, EXIT = 0.42, QGEO = new THREE.PlaneGeometry(1, 1);
@@ -774,18 +774,24 @@ export async function startWorld(profile) {
   }
 
   // ---- totem focus: tap a totem -> camera glides in and a floating 3D detail card opens beside it ----
-  let focus = -1, fk = 0, fz = 0, hoverK = -1;
+  let focus = -1, fk = 0, fz = 0, hoverK = -1, closeTimer;
+  const focusCenter = new THREE.Vector3(), focusGoal = new THREE.Vector3();
   const hitMeshes = totems.map((x) => x.hit), ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const trkbar = $("#tcard"), pickBtn = $("#pick"), backBtn = $("#back");
   const syncPick = () => { pickBtn.innerHTML = Game.squad === fk ? "Squad locked ✓" : "Pick " + TRACKS[fk].k + ' <span aria-hidden="true">→</span>'; };
-  function openFocus(k) { focus = fk = k; const tr = TRACKS[k], q = (s) => trkbar.querySelector(s); trkbar.style.setProperty("--c", tr.col); q(".tc-pill").textContent = "Track 0" + (k + 1); q(".tc-name").textContent = tr.k; q(".tc-tag").textContent = tr.tag; q(".tc-ask").textContent = tr.ask;
+  function openFocus(k) {
+    clearTimeout(closeTimer); const tt = TOT[k]; focusGoal.set(tt.x, tt.y + 5, tt.z);
+    if (fz < 0.002 || reduced) focusCenter.copy(focusGoal);
+    if (focus >= 0 && focus !== k && !reduced) trkbar.querySelector(".tc-body").animate([{ opacity: .25 }, { opacity: 1 }], { duration: 280 });
+    focus = fk = k; const tr = TRACKS[k], q = (s) => trkbar.querySelector(s); trkbar.style.setProperty("--c", tr.col); q(".tc-pill").textContent = "Track 0" + (k + 1); q(".tc-name").textContent = tr.k; q(".tc-tag").textContent = tr.tag; q(".tc-ask").textContent = tr.ask;
     q(".tc-ico").innerHTML = tr.ico; q(".tc-ideas").innerHTML = tr.ideas.map((s) => "<li>" + s + "</li>").join(""); q(".tc-body").scrollTop = 0; syncPick(); trkbar.classList.add("on"); document.body.style.cursor = ""; }
-  function closeFocus() { if (focus < 0) return; focus = -1; trkbar.classList.remove("on"); }
+  function closeFocus() { clearTimeout(closeTimer); if (focus < 0) return; focus = -1; trkbar.classList.remove("on"); }
   function pickTotem(e) { if (curCh !== 4 || !Game.started || Game.sheetOpen) return -1; ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); camera.updateMatrixWorld(); ray.setFromCamera(ndc, camera); const h = ray.intersectObjects(hitMeshes, false); return h.length ? h[0].object.userData.k : -1; }
   addEventListener("click", (e) => { if (e.target.closest("button,a,header,#sheet,#tcard,input,select")) return; const k = pickTotem(e); if (k >= 0 && k !== focus) openFocus(k); else if (focus >= 0) closeFocus(); });
   addEventListener("pointermove", (e) => { if (e.pointerType === "touch") return; const k = focus < 0 ? pickTotem(e) : -1; if (k !== hoverK) { hoverK = k; document.body.style.cursor = k >= 0 ? "pointer" : ""; } }, { passive: true });
   addEventListener("keydown", (e) => { if (e.key === "Escape") closeFocus(); });
-  backBtn.onclick = closeFocus; pickBtn.onclick = () => { if (Game.squad !== fk) { setSquad(fk); syncPick(); setTimeout(closeFocus, 900); } else closeFocus(); };
+  backBtn.onclick = closeFocus; pickBtn.onclick = () => { if (Game.squad !== fk) { setSquad(fk); syncPick(); closeTimer = setTimeout(closeFocus, 900); } else closeFocus(); };
+  $("#next-track").onclick = () => openFocus((fk + 1) % TRACKS.length);
   Game.onSquad.push(() => { if (focus >= 0) syncPick(); });
 
   // ---- scroll -> stage, beats, HUD ---------------------------------------------
@@ -811,7 +817,7 @@ export async function startWorld(profile) {
     if (cur !== curCh) {
       curCh = cur; ensureCaptions(cur); objt.textContent = c.obj; cn.textContent = pad(cur + 1);
       railBtns.forEach((b, i) => b.classList.toggle("on", i === cur)); links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + c.id));
-      if (c.sheet) { brief.dataset.sheet = c.sheet; brief.className = cur === LAST ? "btn" : "btn btn-ghost"; brief.innerHTML = cur === LAST ? 'Register interest <span aria-hidden="true">→</span>' : 'Briefing <span aria-hidden="true">+</span>'; }
+      if (c.sheet) { brief.dataset.sheet = c.sheet; brief.className = cur === LAST ? "btn" : "btn btn-ghost"; brief.innerHTML = cur === LAST ? 'Register <span aria-hidden="true">→</span>' : 'Briefing <span aria-hidden="true">+</span>'; }
     }
     const u = (sy - T[cur]) / Hh[cur]; brief.classList.toggle("on", hudOn && focus < 0 && !!c.sheet && (cur === 2 || cur === LAST || u < 0.62));
   }
@@ -875,9 +881,10 @@ export async function startWorld(profile) {
     if (intro0 === null) intro0 = time; // opening swoop: drop in from high above onto the hero view
     const it = reduced ? 1 : clamp((time - intro0) / 3.6, 0, 1), lift = Math.pow(1 - it, 3) * (1 - sm(0, 0.5, stage));
     if (lift > 0.001) { p.pos.y += lift * 42; p.pos.z += lift * 34; p.tgt.y -= lift * 6; }
-    fz += ((focus >= 0 ? 1 : 0) - fz) * (1 - Math.exp(-dt * 4.5));
+    const focusStep = reduced ? 1 : 1 - Math.exp(-dt * 4.5);
+    fz += ((focus >= 0 ? 1 : 0) - fz) * focusStep;
     if (fz > 0.002) { // glide in on the tapped totem; the card floats to its right (above it on phones)
-      const tt = TOT[fk], C = V3(tt.x, tt.y + 5, tt.z), fw = p.tgt.clone().sub(p.pos).normalize(), rt = V3(0, 0, 0).crossVectors(fw, V3(0, 1, 0)).normalize(), dh = V3(p.pos.x - C.x, 0, p.pos.z - C.z).normalize(), e = sm(0, 1, fz);
+      const C = focusCenter.lerp(focusGoal, focusStep), fw = p.tgt.clone().sub(p.pos).normalize(), rt = V3(0, 0, 0).crossVectors(fw, V3(0, 1, 0)).normalize(), dh = V3(p.pos.x - C.x, 0, p.pos.z - C.z).normalize(), e = sm(0, 1, fz);
       const fp = portrait ? C.clone().addScaledVector(dh, 15).add(V3(0, 3.5, 0)) : C.clone().addScaledVector(dh, 11).add(V3(0, 2.5, 0)), ft = portrait ? V3(C.x, C.y - 2.6, C.z) : C.clone().addScaledVector(rt, 4.2);
       p.pos.lerp(fp, e); p.tgt.lerp(ft, e); }
     pointer.sx += (pointer.x - pointer.sx) * (1 - Math.exp(-dt * 3)); pointer.sy += (pointer.y - pointer.sy) * (1 - Math.exp(-dt * 3));

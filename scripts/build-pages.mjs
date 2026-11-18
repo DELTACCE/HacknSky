@@ -6,11 +6,18 @@ const repo = join(dirname(fileURLToPath(import.meta.url)), ".."), root = join(re
 const E = JSON.parse(readFileSync(join(repo, "data/event.json"), "utf8"));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const draft = (t = "Draft") => `<span class="badge">${t}</span>`;
-const NAV = [["schedule", "Schedule"], ["prizes", "Prizes"], ["rules", "Rules"], ["faq", "FAQ"], ["venue", "Venue"], ["team", "Team"], ["sponsors", "Sponsors"], ["contact", "Contact"]];
+const NAV = [["guide", "Participant guide"], ["schedule", "Schedule"], ["faq", "FAQ"]];
 const identity = `The first flagship hackathon of ${E.organiser} at Christ College of Engineering, Irinjalakuda.`;
 const partnerMarks = `<img src="/assets/silver-storm.webp" width="475" height="240" loading="lazy" alt="Silver Storm Parks and Resorts"><img src="/assets/sky-storm.webp" width="478" height="240" loading="lazy" alt="Sky Storm Cable Car">`;
 
 const PAGES = {
+  guide: { title: "Participant guide", lead: "A two-day student hackathon in Athirappilly, Kerala. Here’s what to know before you apply.", body: () => `
+    <p class="tbc"><b>Proposed:</b> ${esc(E.dates.label)} · ${esc(E.venue.name)}. Please wait for confirmation before booking travel.</p>
+    <h2>Can I enter?</h2><p>Students from Christ College of Engineering and other institutions can take part under the <a href="../rules/">draft eligibility rules</a>.</p>
+    <h2>Do I need a team?</h2><p>The proposed size is ${E.format.proposedTeamSize} students per team. Final team size and arrangements for students without a team are not confirmed.</p>
+    <h2>How does selection work?</h2><p>The plan is to select ${E.format.campusTeams} teams on campus and ${E.format.openCallTeams} through an open call. Every team demos its project; ${E.format.finalists} finalists present to the jury. See the <a href="../prizes/">draft judging criteria</a>.</p>
+    <h2>What happens on the day?</h2><p>Check in, meet your mentors and build overnight. Day two is for demos and final presentations. Read the <a href="../schedule/">proposed schedule</a> and <a href="../venue/">travel notes</a>.</p>
+    <h2>What should I do next?</h2><p>Check registration availability before submitting details. The <a href="../faq/">FAQ</a> covers equipment, fees and accommodation.</p><a class="btn" href="../register/">Register</a>` },
   schedule: { title: "Schedule", lead: `${E.dates.label} · ${E.venue.name} ${draft("Proposed")}`, body: () =>
     E.schedule.map((d) => `<h2>${esc(d.day)}</h2><ol class="tl">${d.items.map((i) => `<li><time>${esc(i.time)}</time><span>${esc(i.what)}</span></li>`).join("")}</ol>`).join("") +
     `<h2>Road to the sprint</h2><ol class="tl">${E.milestones.map((m) => `<li><time>${esc(m.when)}</time><span><b>${esc(m.title)}.</b> ${esc(m.text)}</span></li>`).join("")}</ol>` +
@@ -32,7 +39,7 @@ const PAGES = {
     `<div class="cards">${E.sponsors.tiers.map((t) => `<div class="card"><h3>${esc(t.name)}</h3><p>${t.slots ? `${t.slots} proposed partnership${t.slots > 1 ? "s" : ""}.` : "For groups interested in supporting the event."}</p></div>`).join("")}</div><p>For partnership enquiries, see the <a href="../contact/">organiser contact page</a>.</p>` },
   contact: { title: "Contact", lead: "Reach the organisers", body: () =>
     (E.contact.email ? `<p>Email: <a href="mailto:${esc(E.contact.email)}">${esc(E.contact.email)}</a></p>` : `<p class="tbc">DELTA has not yet published a contact address for HacknSky. The <a href="../faq/">FAQ</a> covers eligibility, travel and accommodation.</p>`) },
-  register: { title: "Register", lead: "Express interest as a team of two or request help finding a partner.", body: () => `<div id="reg-mount" data-base="../"></div>`, reg: true },
+  register: { title: "Register", lead: "HacknSky student registration", body: () => `<div id="reg-mount" data-base="../"><p>Read the <a href="../guide/">participant guide</a> for eligibility and team details. Enable JavaScript to check registration availability.</p></div>` },
   privacy: { title: "Privacy notice", lead: `${draft()} Pending institutional review.`, body: () => `
     <h2>What we collect</h2><p>Only what the registration form asks for: name, email, college, phone (optional), year, track preference, team details.</p>
     <h2>Why</h2><p>To run selection, contact you about the event, arrange travel and safety, and tell you about changes.</p>
@@ -52,7 +59,7 @@ const shell = (slug, p) => {
 <link rel="canonical" href="${url}"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="${depth}css/pages.css">
 <meta property="og:title" content="${esc(p.title)} · HacknSky"><meta property="og:image" content="${E.siteUrl}assets/og.png"></head><body>
 <a class="skip" href="#main">Skip to content</a>
-<header><a class="brand" href="${depth}"><img src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky home"></a><nav aria-label="Pages">${NAV.map(([s, n]) => `<a href="${depth}${s}/"${s === slug ? ' aria-current="page"' : ""}>${n}</a>`).join("")}<a class="btn" href="${depth}register/">Register</a></nav></header>
+<header><a class="brand" href="${depth}"><img src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky home"></a><nav aria-label="Pages"><a href="${depth}#destination">Explore</a>${NAV.map(([s, n]) => `<a href="${depth}${s}/"${s === slug ? ' aria-current="page"' : ""}>${n}</a>`).join("")}<a class="btn" href="${depth}register/">Register</a></nav></header>
 <main id="main" tabindex="-1"><h1>${esc(p.title)}</h1><p class="lead">${p.lead}</p>${p.body()}</main>
 <footer class="event-footer"><div class="footer-inner"><div><img class="footer-event" src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky" loading="lazy"><p>${esc(identity)}</p></div><div><span>Part of the fest</span><img class="footer-fest" src="/assets/datara-27-lockup.webp" width="1156" height="369" alt="DATARA ’27" loading="lazy"></div><div class="footer-partners"><span>In official collaboration with</span><a class="partner-marks" href="${depth}sponsors/" aria-label="Meet our destination partner">${partnerMarks}</a></div><div class="footer-links"><a href="${depth}privacy/">Privacy</a><a href="${depth}terms/">Terms</a><a href="${depth}code-of-conduct/">Code of conduct</a><a href="${depth}past/">Past editions</a></div></div></footer>
 <script type="module" src="${depth}js/pages.js"></script></body></html>`;

@@ -2,7 +2,7 @@
 import { chromium } from "playwright";
 import { preview } from "vite";
 import assert from "node:assert/strict";
-const pages = ["", "?plain", "schedule/", "prizes/", "rules/", "faq/", "venue/", "team/", "sponsors/", "contact/", "register/", "privacy/", "terms/", "code-of-conduct/", "past/"];
+const pages = ["", "?plain", "guide/", "schedule/", "prizes/", "rules/", "faq/", "venue/", "team/", "sponsors/", "contact/", "register/", "privacy/", "terms/", "code-of-conduct/", "past/"];
 const server = await preview({ preview: { host: "127.0.0.1", port: 0, strictPort: true } });
 const base = `http://127.0.0.1:${server.httpServer.address().port}`;
 let b;
@@ -28,6 +28,10 @@ try {
       await pg.locator("html.nogl #loadout.gone").waitFor({ state: "attached" });
       assert(!requests.some((url) => /\/assets\/(?:world|three|intro)-/.test(url)), "Plain mode loaded a 3D bundle");
     }
+    if (p === "register/") {
+      await pg.getByText("Registration opens soon.", { exact: true }).waitFor();
+      assert.equal(await pg.locator("form input").count(), 0);
+    }
     const h1 = p.startsWith("?") || p === "" ? true : await pg.locator("h1").count();
     if (errs.length || !h1) { bad++; console.log("FAIL", p || "/", errs.join(" | ")); } else console.log("ok  ", p || "/");
     await pg.close();
@@ -44,6 +48,13 @@ try {
   await fallback.locator("#loadout.gone").waitFor({ state: "attached" });
   assert(await fallback.locator("#destination h2").isVisible(), "WebGL fallback did not expose the content");
   console.log("ok   WebGL fallback");
+  assert(await fallback.evaluate(() => Math.abs(document.querySelector('#destination').getBoundingClientRect().top) < 2), "Lost the chapter anchor");
+  const phone = await b.newPage({ isMobile: true, hasTouch: true, viewport: { width: 390, height: 844 } });
+  const downloads = []; phone.on("request", r => downloads.push(r.url()));
+  await phone.goto(base); await phone.locator("#entry-choice a").click();
+  await phone.getByRole("heading", { name: "Participant guide", exact: true }).waitFor();
+  assert(!downloads.some(url => /\/assets\/(?:world|three|intro)-/.test(url)), "Guide choice downloaded 3D");
+  console.log("ok   Mobile guide without 3D");
 } finally {
   await b?.close();
   await new Promise((resolve) => server.httpServer.close(resolve));

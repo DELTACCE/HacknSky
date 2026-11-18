@@ -4,12 +4,12 @@
   "organiser": "DELTA, the Data Science Association",
   "fest": "DATARA '27",
   "institution": "Christ College of Engineering (Autonomous), Irinjalakuda · Dept. of CSE (Data Science)",
-  "siteUrl": "https://example.com/",
+  "siteUrl": "https://hacknsky.vercel.app/",
   "dates": { "label": "15–16 Jan 2027", "proposed": true },
   "venue": { "name": "Athirappilly, Kerala", "proposed": true, "lat": 10.285, "lng": 76.57 },
   "contact": { "email": "", "phone": "", "instagram": "", "linkedin": "" },
   "registration": { "fee": "To be confirmed" },
-  "format": { "teamSize": 2, "teams": 20, "campusTeams": 5, "openCallTeams": 15, "finalists": 5 },
+  "format": { "proposedTeamSize": 4, "teams": 20, "campusTeams": 5, "openCallTeams": 15, "finalists": 5 },
 
   "schedule": [
     { "day": "Day 1 · Friday 15 Jan 2027", "items": [
@@ -26,7 +26,7 @@
   "milestones": [
     { "when": "Dec 2026", "title": "Campus selection", "text": "The campus round introduces DATARA '27 and selects five teams from Christ College of Engineering." },
     { "when": "Dec – early Jan", "title": "Open call", "text": "Student teams from other institutions apply for the remaining fifteen places." },
-    { "when": "15–16 Jan 2027", "title": "The sprint", "text": "Twenty teams of two at Athirappilly for the overnight build." },
+    { "when": "15–16 Jan 2027", "title": "The sprint", "text": "Twenty student teams gather in Athirappilly for the proposed overnight build." },
     { "when": "Day 2 · 15:00", "title": "Final presentations", "text": "The five finalists present to the jury before the awards ceremony." }
   ],
   "judging": [
@@ -46,8 +46,8 @@
   "faq": [
     { "q": "What is HacknSky?", "a": "HacknSky is the first flagship event of DELTA, the Data Science Association. The two-day student hackathon is part of DATARA '27, the association's fest at Christ College of Engineering, Irinjalakuda." },
     { "q": "When and where is it?", "a": "The proposed dates are 15–16 January 2027. The proposed hackathon venue is Athirappilly, Kerala. Neither is confirmed." },
-    { "q": "Who can take part?", "a": "Teams of exactly two students. Five teams are selected at Christ College and fifteen more through an open call for other institutions. The exact eligibility rules are in the draft rules." },
-    { "q": "Can I register alone?", "a": "Yes. Tick “I need a partner” on the form and we will try to match you with another solo participant. Matching is not guaranteed." },
+    { "q": "Who can take part?", "a": "HacknSky is for students. Teams of four are proposed; final team size and eligibility will be published before registration opens." },
+    { "q": "Can I register alone?", "a": "Solo registration and team matching are not confirmed. Check the participant guide before forming your team." },
     { "q": "How are the twenty teams chosen?", "a": "Five from the campus round and fifteen from the open call, using a defined evaluation that will be published before the call opens." },
     { "q": "Is there a fee?", "a": "The organisers have not confirmed whether there will be a participation fee." },
     { "q": "How do I get there?", "a": "The proposed plan is buses from Christ College, Irinjalakuda, at 06:30 on Day 1. Travel for teams from other institutions will be confirmed. See the Venue page for distances." },
@@ -60,7 +60,7 @@
   ],
   "rules": [
     { "h": "Teams and eligibility", "items": [
-      "Teams have exactly two members. Nobody can be on more than one team.",
+      "Teams of four are proposed, not yet required. Nobody can be on more than one team.",
       "Participants must be currently enrolled students at a recognised institution (to be confirmed by the organisers).",
       "Twenty teams take part: five selected at Christ College and fifteen through the open call." ] },
     { "h": "What you build", "items": [

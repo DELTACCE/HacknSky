@@ -8,7 +8,7 @@ export const CONFIG = {
   analyticsEndpoint: "",  // optional: receives anonymous events and real-phone performance numbers
   contactEmail: "",       // shown on Contact and used as the fallback when the form is not connected
   community: { label: "", url: "" }, // e.g. { label: "Join the WhatsApp group", url: "https://chat.whatsapp.com/…" }
-  siteUrl: "https://example.com/",
+  siteUrl: "https://hacknsky.vercel.app/",
 };
 
 export const TRACKS = [

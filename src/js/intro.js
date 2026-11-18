@@ -57,6 +57,8 @@ export function playIntro({ onDone } = {}) {
   const dismiss = () => {
     if (!isIntroActive) return;
     isIntroActive = false;
+    window.removeEventListener("keydown", onKeyDown);
+    clearTimeout(safety);
     introEl.classList.add("is-exiting");
 
     const duration = prefersReduced ? 0 : 550;

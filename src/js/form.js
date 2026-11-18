@@ -5,7 +5,7 @@ import { downloadIcs } from "./calendar.js";
 import { share } from "./share.js";
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const DRAFT_KEY = "hns-reg-draft", KEEP = ["name", "email", "phone", "college", "year", "team", "partnerName", "partnerEmail", "needPartner"];
+try { localStorage.removeItem("hns-reg-draft"); } catch { /* storage unavailable */ }
 const STATUS = {
   open: "Registrations are open.", soon: "Registrations open soon. Leave your details and we will write to you first.",
   waitlist: "The list is full. Join the waitlist and we will write if a place opens.", closed: "Registrations are closed.",
@@ -14,26 +14,25 @@ const STATUS = {
 export function mountRegistration(mount, { squad = -1 } = {}) {
   const base = mount.dataset.base || "", st = CONFIG.registration.status in STATUS ? CONFIG.registration.status : "soon", closed = st === "closed";
   const dl = CONFIG.registration.deadline ? ` Deadline: ${esc(CONFIG.registration.deadline)}.` : "";
+  if (closed || st === "soon" || !(CONFIG.formEndpoint || CONFIG.registerUrl)) {
+    mount.innerHTML = `<p class="reg-status"><b>${closed ? "Registration is closed." : "Registration opens soon."}</b> We are not collecting applications right now.</p><p><a href="${base}guide/">Read the participant guide</a></p>`;
+    return;
+  }
+  if (CONFIG.registerUrl) { mount.innerHTML = `<a class="btn" href="${esc(CONFIG.registerUrl)}">Register</a>`; return; }
   mount.innerHTML = `
   <form id="reg" class="reg" novalidate>
     <p class="reg-status" data-st="${st}">${STATUS[st]}${st === "open" || st === "waitlist" ? dl : ""}</p>
     <div class="row2"><label>Your name<input name="name" autocomplete="name" required></label><label>Email<input name="email" type="email" autocomplete="email" inputmode="email" required></label></div>
     <div class="row2"><label>College<input name="college" autocomplete="organization" required></label><label>Phone (optional)<input name="phone" type="tel" autocomplete="tel" inputmode="tel"></label></div>
     <div class="row2"><label>Year and department<input name="year" placeholder="e.g. 3rd year, CSE"></label><label>Track<select name="track" id="f-track"><option value="">Undecided</option>${TRACKS.map((t, i) => `<option value="${i}">${esc(t.k)}</option>`).join("")}</select></label></div>
-    <fieldset><legend>Your team of two</legend>
-      <label class="chk"><input type="checkbox" name="needPartner"> I need a partner. Match me if you can.</label>
-      <div class="row2"><label>Team name<input name="team"></label><label>Partner name<input name="partnerName" autocomplete="off"></label></div>
-      <label>Partner email<input name="partnerEmail" type="email" inputmode="email" autocomplete="off"></label>
-    </fieldset>
+    <label>Team name (optional)<input name="team"></label>
     <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
     <label class="chk consent"><input type="checkbox" name="consent" required> I agree to the <a href="${base}privacy/" target="_blank" rel="noopener">privacy notice</a> and the <a href="${base}code-of-conduct/" target="_blank" rel="noopener">code of conduct</a>.</label>
-    <button class="btn btn-lg" type="submit" ${closed ? "disabled" : ""}>${st === "waitlist" ? "Join the waitlist" : "Register interest"} <span aria-hidden="true">→</span></button>
+    <button class="btn btn-lg" type="submit">Register <span aria-hidden="true">→</span></button>
     <div id="fmsg" role="status" aria-live="polite"></div>
   </form>`;
   const form = mount.querySelector("form"), msg = form.querySelector("#fmsg"), btn = form.querySelector("button[type=submit]"), t0 = Date.now();
   if (squad >= 0) form.track.value = String(squad);
-  try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); if (d) for (const k of KEEP) { const el = form.elements[k]; if (el && d[k] != null) { if (el.type === "checkbox") el.checked = !!d[k]; else el.value = d[k]; } } } catch (e) { /* ignore */ }
-  form.addEventListener("input", () => { try { const d = {}; for (const k of KEEP) { const el = form.elements[k]; d[k] = el.type === "checkbox" ? el.checked : el.value; } localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch (e) { /* ignore */ } });
   let started = false; form.addEventListener("focusin", () => { if (!started) { started = true; track("register_start"); } });
 
   const fail = (text, field) => { msg.className = "bad"; msg.textContent = text; if (field) field.focus(); btn.disabled = closed; return false; };
@@ -42,23 +41,17 @@ export function mountRegistration(mount, { squad = -1 } = {}) {
     if (v("name").length < 2) return fail("Please add your name.", f.name);
     if (!mail.test(v("email"))) return fail("Please add a valid email.", f.email);
     if (!v("college")) return fail("Please add your college.", f.college);
-    if (v("partnerEmail") && !mail.test(v("partnerEmail"))) return fail("The partner email does not look right.", f.partnerEmail);
     if (!f.consent.checked) return fail("Please tick the box to continue.", f.consent);
     if (v("website")) return done(); // honeypot: pretend it worked
     if (Date.now() - t0 < 2500) return fail("That was quick. Please check the details and try again.");
-    const tr = TRACKS[+f.track.value], data = { type: "registration", name: v("name"), email: v("email"), phone: v("phone"), college: v("college"), year: v("year"), track: tr ? tr.k : "undecided", team: v("team"), partnerName: v("partnerName"), partnerEmail: v("partnerEmail"), needPartner: f.needPartner.checked, consent: true, consentAt: new Date().toISOString(), source: location.pathname, status: CONFIG.registration.status };
-    if (CONFIG.registerUrl) { track("register_redirect"); location.href = CONFIG.registerUrl; return; }
-    if (!CONFIG.formEndpoint) {
-      msg.className = "bad"; msg.innerHTML = "Registration is not connected yet, so nothing was sent." + (CONFIG.contactEmail ? ` You can email us instead: <a href="mailto:${esc(CONFIG.contactEmail)}?subject=${encodeURIComponent("HacknSky registration")}&body=${encodeURIComponent(`Name: ${data.name}\nCollege: ${data.college}\nTrack: ${data.track}\nTeam: ${data.team}`)}">${esc(CONFIG.contactEmail)}</a>.` : "");
-      return;
-    }
+    const data = { type: "registration", name: v("name"), email: v("email"), phone: v("phone"), college: v("college"), year: v("year"), track: TRACKS[f.track.value]?.k || "undecided", team: v("team"), consent: true, consentAt: new Date().toISOString(), source: location.pathname, status: st };
     btn.disabled = true; msg.className = ""; msg.textContent = "Sending…"; track("register_submit", { track: data.track });
     try {
       const gas = /script\.google\.com/.test(CONFIG.formEndpoint); // Apps Script needs a "simple" request to avoid a CORS preflight
       const r = await fetch(CONFIG.formEndpoint, { method: "POST", headers: { "Content-Type": gas ? "text/plain;charset=utf-8" : "application/json" }, body: JSON.stringify(data) });
       const j = await r.json().catch(() => null);
-      if (!r.ok || (j && j.ok === false)) return fail((j && j.error) || "Something went wrong. Please try again.");
-      track("register_ok"); try { localStorage.removeItem(DRAFT_KEY); } catch (e2) { /* ignore */ } done(data);
+      if (!r.ok || j?.ok !== true) return fail(j?.error || "We could not confirm your registration. Please try again.");
+      track("register_ok"); done(data);
     } catch (err) { track("register_fail"); fail("Network error. Please try again."); }
   });
 

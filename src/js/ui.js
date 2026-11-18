@@ -37,7 +37,8 @@ const boot = async (p, m) => { show(38 + p * 0.62, m); await new Promise((r) => 
 const showError = (m) => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => (t.style.display = "none"), 6000); console.error(m); };
 const failWorld = (m) => { ROOT.classList.add("nogl"); bootmsg.textContent = m; skip.style.display = "inline-flex"; const rt = $("#retry"); if (rt) { rt.style.display = "inline-flex"; rt.onclick = () => location.reload(); } console.error(m); };
 function enter(plain) {
-  loadout.classList.add("gone"); ROOT.style.overflow = ""; Game.started = true; scrollTo(0, 0);
+  loadout.classList.add("gone"); ROOT.style.overflow = ""; Game.started = true;
+  document.getElementById(location.hash.slice(1))?.scrollIntoView();
   if (!plain && Game.onStart) Game.onStart();
 }
 // Navigate to a fresh plain page so a failed or still-loading world cannot resume behind it.
@@ -92,10 +93,10 @@ renderSquad();
 
 // ---- countdown --------------------------------------------------------------
 const pad = (n) => String(n).padStart(2, "0");
-setInterval(function tick() {
-  const s = Math.max(0, Math.floor((new Date(CONFIG.startsAt) - Date.now()) / 1000));
-  $("#t-d").textContent = pad(Math.floor(s / 86400)); $("#t-h").textContent = pad(Math.floor((s % 86400) / 3600));
-  $("#t-m").textContent = pad(Math.floor((s % 3600) / 60)); $("#t-s").textContent = pad(s % 60); return tick;
-}(), 1000);
+const deadline = Date.parse(CONFIG.registration.deadline);
+if (CONFIG.registration.status === "open" && Number.isFinite(deadline)) {
+  const tick = () => { const hours = Math.ceil((deadline - Date.now()) / 3600000); $("#date-note").textContent = hours <= 0 ? "Application deadline passed" : `Application deadline: ${Math.floor(hours / 24)}d ${hours % 24}h remaining`; };
+  tick(); setInterval(tick, 60000);
+}
 
 export { CONFIG, $, $$, ROOT, CH, TRACKS, Game, bootT0, loadout, show, boot, showError, failWorld, enter, setSquad, pad, track };

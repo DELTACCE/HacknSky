@@ -14,10 +14,10 @@
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/icon-192.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="canonical" href="https://example.com/">
-<meta property="og:type" content="website"><meta property="og:site_name" content="HacknSky"><meta property="og:title" content="HacknSky: a destination hackathon at Athirappilly Falls">
+<link rel="canonical" href="https://hacknsky.vercel.app/">
+<meta property="og:type" content="website"><meta property="og:site_name" content="HacknSky"><meta property="og:title" content="HacknSky: a student destination hackathon in Athirappilly">
 <meta property="og:description" content="DATARA ’27 presents the Data Science Association’s first flagship hackathon. Two days of building in Athirappilly, Kerala. Proposed for 15–16 January 2027.">
-<meta property="og:image" content="https://example.com/assets/og.png"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://hacknsky.vercel.app/assets/og.png"><meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Event","name":"HacknSky","description":"The Data Science Association’s first flagship hackathon. Dates and venue are proposed.","superEvent":{"@type":"Festival","name":"DATARA ’27"},"startDate":"2027-01-15T09:00:00+05:30","endDate":"2027-01-16T18:00:00+05:30","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","location":{"@type":"Place","name":"Athirappilly, Kerala","address":{"@type":"PostalAddress","addressRegion":"Kerala","addressCountry":"IN"}},"organizer":{"@type":"Organization","name":"DELTA, the Data Science Association","parentOrganization":{"@type":"CollegeOrUniversity","name":"Christ College of Engineering, Irinjalakuda"}}}</script>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/intro.css">
@@ -25,7 +25,8 @@
 </head>
 <body>
 <!-- ================= 3D brand intro ================= -->
-<div id="brand-intro" class="brand-intro" role="dialog" aria-modal="true" aria-label="Welcome to HACKnSKY" tabindex="-1">
+<dialog id="entry-choice" aria-labelledby="entry-heading"><img src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky"><h2 id="entry-heading">Build in the valley.</h2><p>A two-day student hackathon in Athirappilly, Kerala. Teams of four are proposed.</p><a class="btn" href="guide/">Participant guide</a> <button class="btn btn-ghost" id="explore-3d">Explore the 3D valley</button></dialog>
+<div id="brand-intro" class="brand-intro" role="dialog" aria-modal="true" aria-label="Welcome to HACKnSKY" tabindex="-1" style="display:none">
   <button type="button" class="intro-skip-btn" id="intro-skip" aria-label="Skip intro animation">Skip</button>
   <div class="intro-artwork" role="img" aria-label="HACKnSKY — a cable car above the rainforest">
     <div class="intro-canvas" id="intro-canvas"></div>
@@ -83,13 +84,12 @@
   <nav aria-label="Main">
     <a class="brand" href="#top"><img src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky home"></a>
     <ul class="nt" id="links">
-      <li><a href="#destination">Destination</a></li><li><a href="#experience">Experience</a></li>
-      <li><a href="#hackathon">Tracks</a></li><li><a href="#playground">Playground</a></li>
-      <li><a href="#route">Route</a></li><li><a href="#competition">Awards</a></li>
+      <li><a href="#destination">Explore</a></li><li><a href="guide/">Participant guide</a></li><li><a href="schedule/">Schedule</a></li><li><a href="faq/">FAQ</a></li>
     </ul>
     <div class="navr"><button class="btn" data-sheet="register">Register</button><button id="menu" aria-label="Menu" aria-expanded="false"><i></i></button></div>
   </nav>
   <div id="drawer">
+    <a class="l" href="guide/">Participant guide</a>
     <a class="l" href="#destination"><small>01</small>Destination</a><a class="l" href="#experience"><small>03</small>Experience</a>
     <a class="l" href="#hackathon"><small>04</small>Tracks</a><a class="l" href="#playground"><small>05</small>Playground</a>
     <a class="l" href="#route"><small>06</small>Route</a><a class="l" href="#competition"><small>07</small>Awards</a>
@@ -97,7 +97,7 @@
     <button class="btn btn-ghost" id="gfx" style="margin-top:1.2rem;width:100%">Graphics: Auto</button>
     <button class="btn btn-ghost" id="plainbtn" style="margin-top:.6rem;width:100%">Plain page (no 3D)</button>
     <button class="btn btn-ghost" id="replaybtn" style="margin-top:.6rem;width:100%">Replay 3D intro</button>
-    <button class="btn btn-lg" style="margin-top:.8rem;width:100%" data-sheet="register">Register interest <span aria-hidden="true">→</span></button>
+    <button class="btn btn-lg" style="margin-top:.8rem;width:100%" data-sheet="register">Register <span aria-hidden="true">→</span></button>
   </div>
 </header>
 
@@ -108,7 +108,7 @@
   <div id="count"><b id="cn">01</b> / 09</div>
   <div id="rail" role="navigation" aria-label="Chapters"></div>
   <button id="brief" class="btn btn-ghost" data-sheet="dest">Briefing <span aria-hidden="true">+</span></button>
-  <div id="tcard" role="dialog" aria-label="Track details"><div class="tc-head"><span class="tc-pill"></span><h3 class="tc-name"></h3><p class="tc-tag"></p><svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg></div><div class="tc-body"><b class="tc-lab">The challenge</b><p class="tc-ask"></p><b class="tc-lab">Sample ideas</b><ol class="tc-ideas"></ol></div><div class="tc-actions"><button class="btn" id="pick">Pick</button><button class="btn btn-ghost" id="back">Back</button></div></div>
+  <div id="tcard" role="dialog" aria-label="Track details"><div class="tc-head"><span class="tc-pill"></span><h3 class="tc-name"></h3><p class="tc-tag"></p><svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg></div><div class="tc-body"><b class="tc-lab">The challenge</b><p class="tc-ask"></p><b class="tc-lab">Sample ideas</b><ol class="tc-ideas"></ol></div><div class="tc-actions"><button class="btn" id="pick">Pick</button><button class="btn btn-ghost" id="next-track">Next track</button><button class="btn btn-ghost" id="back">Back</button></div></div>
 </div>
 
 <!-- ================= briefing sheet ================= -->
@@ -124,11 +124,11 @@
   <section id="top" class="chap">
     <h1 class="sr">HacknSky: a destination hackathon</h1>
     <div class="heroact">
-      <button class="btn btn-lg" data-sheet="register">Register interest <span aria-hidden="true">→</span></button>
-      <a class="ghost" href="#destination">Start the journey <span aria-hidden="true">↓</span></a>
+      <p class="hero-summary">A two-day student hackathon in Athirappilly, Kerala.<small>Proposed format: teams of four.</small></p>
+      <button class="btn btn-lg" data-sheet="register">Register <span aria-hidden="true">→</span></button>
+      <a class="ghost" href="guide/">Participant guide</a><a class="ghost" href="#destination">Explore the valley ↓</a>
     </div>
-    <div class="timer" role="timer" aria-label="Time until the proposed start of HacknSky"><span class="d"></span><em>15 Jan · Proposed</em>
-      <span><b id="t-d">--</b><i>d</i></span><span><b id="t-h">--</b><i>h</i></span><span><b id="t-m">--</b><i>m</i></span><span><b id="t-s">--</b><i>s</i></span></div>
+    <p class="timer" id="date-note">Proposed: 15–16 January 2027 · Athirappilly, Kerala</p>
     <div class="cue" aria-hidden="true">Scroll<i></i></div>
   </section>
 
@@ -141,7 +141,7 @@
     <button class="btn nogl-only" data-sheet="cable">Read the briefing</button></div></section>
 
   <section id="experience" class="chap h150"><div class="sr"><p>03 — Base camp</p><h2>Build by day. Campfire by night.</h2>
-    <p>Two days, 20 teams, two students per team.</p>
+    <p>Two days, 20 teams. Teams of four are proposed.</p>
     <button class="btn nogl-only" data-sheet="day">See the day plan</button></div></section>
 
   <section id="hackathon" class="chap h170"><div class="sr"><p>04 — Choose your altitude</p><h2>Four tracks: Sky, Canopy, River, Summit.</h2>
@@ -160,8 +160,8 @@
     <button class="btn nogl-only" data-sheet="awards">See the awards</button></div></section>
 
   <section id="register" class="chap h100"><div class="sr"><p>08 — Your cabin</p><h2>Ready to ascend?</h2>
-    <p>Register interest. No commitment yet.</p>
-    <button class="btn nogl-only" data-sheet="register">Register interest</button></div></section>
+    <p>Check registration availability.</p>
+    <button class="btn nogl-only" data-sheet="register">Register</button></div></section>
 </main>
 <footer class="event-footer">
   <div class="footer-inner">
@@ -175,7 +175,7 @@
 <!-- ================= briefing content (opened on demand) ================= -->
 <template id="sheet-dest" data-eb="01 · The destination" data-h="Athirappilly, Kerala">
   <p>Where the Chalakudy River drops off a ledge into the rainforest. Mist, hornbills, one very loud waterfall.</p>
-  <div class="grid g3"><div><span class="k">Drop</span><h3>~24 m</h3><p>The main falls</p></div><div><span class="k">Coordinates</span><h3>10.28°N 76.57°E</h3><p>Western Ghats</p></div><div><span class="k">Teams</span><h3>20 × 2</h3><p>Two students each</p></div></div>
+  <div class="grid g3"><div><span class="k">Drop</span><h3>~24 m</h3><p>The main falls</p></div><div><span class="k">Coordinates</span><h3>10.28°N 76.57°E</h3><p>Western Ghats</p></div><div><span class="k">Proposed format</span><h3>20 teams</h3><p>Four students per team, subject to confirmation.</p></div></div>
   <p class="note">Proposed destination. Venue and logistics are subject to confirmation.</p>
 </template>
 <template id="sheet-cable" data-eb="02 · The cable car" data-h="The Sky Storm line">
@@ -209,15 +209,14 @@
   <div class="grid g2">
     <div><span class="k">Dec 2026</span><h3>Campus engagement</h3><p>DATARA’27 is introduced and five teams are selected at Christ College.</p></div>
     <div><span class="k">Dec – early Jan</span><h3>Open call</h3><p>Other institutions apply; fifteen more teams are chosen by a defined evaluation.</p></div>
-    <div><span class="k">15–16 Jan 2027</span><h3>The sprint</h3><p>Twenty teams of two at Athirappilly for the overnight build.</p></div>
+    <div><span class="k">15–16 Jan 2027</span><h3>The sprint</h3><p>Twenty student teams at Athirappilly for the proposed overnight build.</p></div>
     <div><span class="k">Day 2 · 15:00</span><h3>The finale</h3><p>Five finalists showcase, awards follow, the ride is proposed.</p></div>
   </div>
 </template>
 <template id="sheet-awards" data-eb="07 · The summit deck" data-h="Recognition, still being planned">
   <div class="grid g3"><div><h3>Overall winners</h3><p>Programme being planned.</p></div><div><h3>Track awards</h3><p>Categories and amounts to be decided.</p></div><div><h3>Special mentions</h3><p>Announced with the jury.</p></div></div>
 </template>
-<template id="sheet-register" data-eb="08 · Your cabin" data-h="Register interest">
-  <p>Tell us you’re in. We’ll write when dates, tracks and the ride are confirmed.</p>
+<template id="sheet-register" data-eb="08 · Your cabin" data-h="Register">
   <div id="reg-mount"></div>
   <p class="note">Details: <a href="schedule/">schedule</a> · <a href="rules/">rules</a> · <a href="faq/">FAQ</a> · <a href="privacy/">privacy</a></p>
 </template>
