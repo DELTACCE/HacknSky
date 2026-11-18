@@ -56,7 +56,7 @@ const shell = (slug, p) => {
   const depth = "../", url = `${E.siteUrl}${slug}/`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(p.title)} | HacknSky · DATARA ’27</title><meta name="description" content="${esc(p.title)} for HacknSky at ${esc(E.fest)}. Proposed hackathon dates and venue: ${esc(E.dates.label)}, ${esc(E.venue.name)}.">
-<link rel="canonical" href="${url}"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="${depth}css/pages.css">
+<link rel="canonical" href="${url}"><link rel="icon" href="/assets/hacknsky-tab-64.png" type="image/png" sizes="64x64"><link rel="apple-touch-icon" href="/assets/hacknsky-app-192.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="${depth}css/pages.css">
 <meta property="og:title" content="${esc(p.title)} · HacknSky"><meta property="og:image" content="${E.siteUrl}assets/og.png"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <header><a class="brand" href="${depth}"><img src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky home"></a><nav aria-label="Pages"><a href="${depth}#destination">Explore</a>${NAV.map(([s, n]) => `<a href="${depth}${s}/"${s === slug ? ' aria-current="page"' : ""}>${n}</a>`).join("")}<a class="btn" href="${depth}register/">Register</a></nav></header>
