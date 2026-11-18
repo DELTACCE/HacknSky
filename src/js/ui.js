@@ -31,12 +31,8 @@ try { const v = localStorage.getItem("hns-track"); if (v !== null && TRACKS[+v])
 const bootT0 = performance.now(), loadout = $("#loadout"), skip = $("#skip"), bar = $("#barfill"), bootmsg = $("#bootmsg");
 ROOT.style.overflow = "hidden";
 $("#rail").innerHTML = CH.map((c, i) => `<button data-ch="${i}" aria-label="${c.name}" title="${c.name}"><i></i></button>`).join("");
-let ldP = 0, ldS = 0; const ldWire = $("#ldwire"), ldCab = $("#ldcab");
-(function ldTick() { // the loader gondola glides along the wire in step with the real progress
-  if (loadout.classList.contains("gone")) return; ldS += (ldP - ldS) * 0.07; const L = ldWire.getTotalLength(), q = ldWire.getPointAtLength(L * (0.03 + 0.94 * ldS / 100)); ldCab.setAttribute("transform", `translate(${q.x.toFixed(1)} ${q.y.toFixed(1)})`); requestAnimationFrame(ldTick);
-})();
 let shown = 0, slowNet = false; setTimeout(() => (slowNet = true), 9000);
-const show = (v, m) => { v = Math.min(100, Math.max(shown, Math.round(v))); shown = v; ldP = v; bar.style.width = v + "%"; bootmsg.textContent = (v < 100 ? `${m}… ${v}%` : m) + (slowNet && v < 100 ? " · slow connection" : ""); };
+const show = (v) => { shown = Math.min(100, Math.max(shown, Math.round(v))); bar.style.transform = `scaleX(${shown / 100})`; bootmsg.textContent = shown + "%" + (slowNet && shown < 100 ? " · slow connection" : ""); };
 const boot = async (p, m) => { show(38 + p * 0.62, m); await new Promise((r) => setTimeout(r, 30)); }; // world-building steps use 38..100 of the bar; engine 0..30, fonts 30..38
 const showError = (m) => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => (t.style.display = "none"), 6000); console.error(m); };
 const failWorld = (m) => { ROOT.classList.add("nogl"); bootmsg.textContent = m; skip.style.display = "inline-flex"; const rt = $("#retry"); if (rt) { rt.style.display = "inline-flex"; rt.onclick = () => location.reload(); } console.error(m); };
@@ -44,7 +40,8 @@ function enter(plain) {
   loadout.classList.add("gone"); ROOT.style.overflow = ""; Game.started = true; scrollTo(0, 0);
   if (!plain && Game.onStart) Game.onStart();
 }
-skip.onclick = () => enter(true);
+// Navigate to a fresh plain page so a failed or still-loading world cannot resume behind it.
+skip.onclick = () => { const url = new URL(location.href); url.searchParams.set("plain", ""); location.assign(url.href); };
 
 // ---- squad (chosen track) -------------------------------------------------
 function renderSquad() {
@@ -60,7 +57,7 @@ function setSquad(i) {
 // ---- briefing sheets ------------------------------------------------------
 const sheet = $("#sheet"), sbody = $("#sbody"); let lastFocus = null;
 // while a briefing is open the page behind it is inert: keyboard and screen readers stay inside the dialog
-const setInert = (on) => $$("#hdr, main, #hud").forEach((el) => { el.inert = on; });
+const setInert = (on) => $$("#hdr, main, #hud, .event-footer").forEach((el) => { el.inert = on; });
 sheet.addEventListener("keydown", (e) => { // simple focus trap
   if (e.key !== "Tab" || !Game.sheetOpen) return; const f = $$("button, a[href], input, select, textarea", $(".panel")).filter((x) => !x.disabled && x.offsetParent !== null); if (!f.length) return;
   const first = f[0], last = f[f.length - 1]; if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
