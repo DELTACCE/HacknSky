@@ -4,13 +4,24 @@
   "private": true,
   "description": "HacknSky hackathon site: a static, build-free 3D valley.",
   "scripts": {
-    "vendor": "node scripts/get-three.mjs",
-    "dev": "python3 tools/serve.py 8080",
-    "start": "python3 tools/serve.py 8080",
-    "build": "node scripts/build-pages.mjs",
+    "dev": "vite",
+    "build": "node scripts/build-pages.mjs && vite build",
+    "preview": "vite preview",
+    "pages": "node scripts/build-pages.mjs",
     "links": "node scripts/check-links.mjs",
-    "test": "node tests/smoke.mjs",
+    "test": "npm run build && node tests/smoke.mjs",
     "fonts": "node scripts/get-fonts.mjs"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "type": "module",
+  "dependencies": {
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "playwright": "^1.48.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }
