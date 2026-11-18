@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-const repo = join(dirname(fileURLToPath(import.meta.url)), ".."), root = join(repo, "public"); // output goes to public/
+const repo = join(dirname(fileURLToPath(import.meta.url)), ".."), root = join(repo, "src"); // generated pages go to src/ so Vite bundles them
 const E = JSON.parse(readFileSync(join(repo, "data/event.json"), "utf8"));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const draft = (t = "Draft") => `<span class="badge">${t}</span>`;
@@ -47,7 +47,7 @@ const shell = (slug, p) => {
   const depth = "../", url = `${E.siteUrl}${slug}/`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(p.title)} · HacknSky</title><meta name="description" content="${esc(p.title)}: HacknSky, ${esc(E.dates.label)}, ${esc(E.venue.name)}.">
-<link rel="canonical" href="${url}"><link rel="icon" href="${depth}assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="${depth}css/pages.css">
+<link rel="canonical" href="${url}"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="${depth}css/pages.css">
 <meta property="og:title" content="${esc(p.title)} · HacknSky"><meta property="og:image" content="${E.siteUrl}assets/og.png"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <header><a class="brand" href="${depth}">HacknSky</a><nav aria-label="Pages">${NAV.map(([s, n]) => `<a href="${depth}${s}/"${s === slug ? ' aria-current="page"' : ""}>${n}</a>`).join("")}<a class="btn" href="${depth}register/">Register</a></nav></header>
@@ -58,5 +58,5 @@ const shell = (slug, p) => {
 
 for (const [slug, p] of Object.entries(PAGES)) { mkdirSync(join(root, slug), { recursive: true }); writeFileSync(join(root, slug, "index.html"), shell(slug, p)); }
 const urls = ["", ...Object.keys(PAGES)].map((s) => `<url><loc>${E.siteUrl}${s ? s + "/" : ""}</loc></url>`).join("");
-writeFileSync(join(root, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>\n`);
+writeFileSync(join(repo, "public", "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>\n`);
 console.log("built", Object.keys(PAGES).length, "pages + sitemap");
