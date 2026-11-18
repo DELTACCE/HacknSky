@@ -88,7 +88,7 @@ document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-track]"); if (t) { setSquad(+t.dataset.track); return; }
   const r = e.target.closest("#rail button"); if (r) { const el = document.getElementById(CH[+r.dataset.ch].id); scrollTo({ top: el.getBoundingClientRect().top + scrollY, behavior: "auto" }); return; }
   if (e.target === sheet || e.target.closest("#sx")) closeSheet();
-  if (e.target.closest("#drawer a")) setDrawer(false);
+  if (e.target.closest("#drawer a, #drawer button")) setDrawer(false);
 });
 addEventListener("keydown", (e) => { if (e.key === "Escape") { closeSheet(); if (drawer.classList.contains("open")) setDrawer(false); } });
 renderSquad();

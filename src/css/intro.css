@@ -1,0 +1,110 @@
+/* ==========================================================================
+   HacknSky · 3D Brand Intro and Logo Styles
+   ========================================================================== */
+
+body.intro-open {
+  overflow: hidden !important;
+}
+
+.brand-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 20% 85%, #d5e6bf55, transparent 50%),
+    radial-gradient(ellipse at 60% 35%, #bdd3aa, #7da98a 55%, #2a5946);
+  color: var(--cream, #fbf5e7);
+  transition: opacity 0.55s ease, visibility 0.55s ease;
+}
+
+.brand-intro.is-exiting {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.intro-artwork,
+.intro-canvas,
+.intro-fallback {
+  position: absolute;
+  inset: 0;
+}
+
+.intro-artwork {
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+
+.is-playing .intro-artwork {
+  opacity: 1;
+}
+
+.intro-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.intro-fallback {
+  display: grid;
+  place-items: center;
+}
+
+.intro-static-logo {
+  width: min(58vw, 960px);
+  max-height: 50svh;
+  object-fit: contain;
+  height: auto;
+}
+
+.intro-skip-btn {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 10;
+  padding: 0.5rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fbf5e7;
+  background: rgba(11, 43, 36, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(251, 245, 231, 0.25);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s, border-color 0.2s;
+}
+
+.intro-skip-btn:hover {
+  background: rgba(11, 43, 36, 0.8);
+  color: #c6f04e;
+  border-color: #c6f04e;
+  transform: translateY(-1px);
+}
+
+.intro-skip-btn:focus-visible {
+  outline: 2px solid #c6f04e;
+  outline-offset: 2px;
+}
+
+/* Nav brand logo */
+.nav-brand-logo {
+  height: 34px !important;
+  max-height: 34px !important;
+  width: auto !important;
+  max-width: 140px !important;
+  display: inline-block;
+  vertical-align: middle;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .nav-brand-logo {
+    height: 28px !important;
+    max-height: 28px !important;
+  }
+}

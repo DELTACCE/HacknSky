@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <meta name="color-scheme" content="dark">
+<link rel="icon" href="/assets/brand/favicon.png" type="image/png">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/icon-192.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -19,9 +20,21 @@
 <meta property="og:image" content="https://example.com/assets/og.png"><meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Event","name":"HacknSky","description":"A two-day destination hackathon at Athirappilly Falls, Kerala. Dates and venue are proposed and subject to confirmation.","startDate":"2027-01-15T09:00:00+05:30","endDate":"2027-01-16T18:00:00+05:30","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","location":{"@type":"Place","name":"Athirappilly, Kerala","address":{"@type":"PostalAddress","addressRegion":"Kerala","addressCountry":"IN"}},"organizer":{"@type":"Organization","name":"DELTA × DATARA, Christ College of Engineering (Autonomous)"}}</script>
 <link rel="stylesheet" href="css/style.css">
-<noscript><style>#loadout{display:none}</style></noscript>
+<link rel="stylesheet" href="css/intro.css">
+<noscript><style>#loadout,#brand-intro{display:none}</style></noscript>
 </head>
 <body>
+<!-- ================= 3D brand intro ================= -->
+<div id="brand-intro" class="brand-intro" role="dialog" aria-modal="true" aria-label="Welcome to HACKnSKY" tabindex="-1">
+  <button type="button" class="intro-skip-btn" id="intro-skip" aria-label="Skip intro animation">Skip</button>
+  <div class="intro-artwork" role="img" aria-label="HACKnSKY — a cable car above the rainforest">
+    <div class="intro-canvas" id="intro-canvas"></div>
+    <div class="intro-fallback" id="intro-fallback" style="display:none">
+      <img class="intro-static-logo" src="/assets/brand/logo.webp" alt="HACKnSKY">
+    </div>
+  </div>
+</div>
+
 <canvas id="gl" aria-hidden="true"></canvas>
 <div id="toast"></div>
 
@@ -66,7 +79,7 @@
 <!-- ================= header ================= -->
 <header id="hdr">
   <nav aria-label="Main">
-    <a class="brand nt" href="#top"><svg viewBox="0 0 30 24" aria-hidden="true"><path d="M0 24 11 5l5 8 4-6 10 17z" fill="currentColor"/><path d="M3 4l3-3 3 3-3 3z" fill="#c6f04e"/></svg>HacknSky</a>
+    <a class="brand nt" href="#top" aria-label="HacknSky, back to top"><img class="nav-brand-logo" src="/assets/brand/logo.webp" alt="HacknSky"></a>
     <ul class="nt" id="links">
       <li><a href="#destination">Destination</a></li><li><a href="#experience">Experience</a></li>
       <li><a href="#hackathon">Tracks</a></li><li><a href="#playground">Playground</a></li>
@@ -81,6 +94,7 @@
     <a class="l" href="schedule/"><small>+</small>Schedule</a><a class="l" href="prizes/"><small>+</small>Prizes</a><a class="l" href="rules/"><small>+</small>Rules</a><a class="l" href="faq/"><small>+</small>FAQ</a><a class="l" href="venue/"><small>+</small>Venue</a><a class="l" href="contact/"><small>+</small>Contact</a>
     <button class="btn btn-ghost" id="gfx" style="margin-top:1.2rem;width:100%">Graphics: Auto</button>
     <button class="btn btn-ghost" id="plainbtn" style="margin-top:.6rem;width:100%">Plain page (no 3D)</button>
+    <button class="btn btn-ghost" id="replaybtn" style="margin-top:.6rem;width:100%">Replay 3D intro</button>
     <button class="btn btn-lg" style="margin-top:.8rem;width:100%" data-sheet="register">Register interest <span aria-hidden="true">→</span></button>
   </div>
 </header>
