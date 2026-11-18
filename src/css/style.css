@@ -93,6 +93,8 @@ body.scrolled .heroact,body.scrolled .timer,body.scrolled .cue{opacity:0;transfo
 .k{font-size:.66rem;letter-spacing:.2em;font-weight:600;color:#4d7a15;text-transform:uppercase}
 .tl{list-style:none;margin:1rem 0 0;padding:0}.tl li{display:flex;gap:1rem;padding:.5rem 0;border-bottom:1px dashed rgba(11,59,48,.2)}.tl b{min-width:3.6rem;font-variant-numeric:tabular-nums}
 .note{font-size:.78rem;opacity:.65;margin-top:1rem}
+.field-note{display:grid;grid-template-columns:1fr clamp(6rem,18vw,10rem);align-items:center;gap:1.25rem;background:#dce6d4;color:#173f34;padding:clamp(1rem,3vw,1.75rem);border-left:4px solid #51805f}.field-note span{font:700 .67rem/1.4 Outfit,sans-serif;text-transform:uppercase;letter-spacing:.13em}.field-note h3{margin:.4rem 0;font-size:clamp(1.4rem,3vw,2rem);line-height:1.1}.field-note img{width:100%;height:auto}.lagoon-note{background:#d8e9e9;border-color:#35798d}
+@media(max-width:480px){.field-note{grid-template-columns:1fr}.field-note img{width:7rem}}
 form{display:grid;gap:.8rem;margin-top:1rem;max-width:30rem}
 input,select{font:inherit;padding:.8rem 1rem;border:1px solid rgba(11,59,48,.3);background:#fff8;color:inherit;border-radius:0;min-height:3rem;width:100%}
 #fmsg{min-height:1.4rem;font-size:.9rem}

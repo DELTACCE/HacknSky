@@ -18,3 +18,4 @@ footer{text-align:center;color:var(--mut);padding:24px 20px;border-top:1px solid
 .reg label{display:block;margin:10px 0 4px}.reg input,.reg select,.reg textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit}
 .reg .hp{position:absolute;left:-9999px}.reg .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.reg-status{background:var(--card);padding:10px 14px;border-radius:8px}
 @media(max-width:560px){.reg .row2{grid-template-columns:1fr}.tl li{flex-direction:column;gap:0}}
+.destination-partner{background:#dce6d4;color:#153c31;padding:clamp(1.25rem,4vw,2rem);border-top:4px solid #739776}.destination-partner h2{margin:1rem 0 .25rem}.destination-partner p{margin:0;max-width:58ch}

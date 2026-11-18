@@ -8,6 +8,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const draft = (t = "Draft") => `<span class="badge">${t}</span>`;
 const NAV = [["schedule", "Schedule"], ["prizes", "Prizes"], ["rules", "Rules"], ["faq", "FAQ"], ["venue", "Venue"], ["team", "Team"], ["sponsors", "Sponsors"], ["contact", "Contact"]];
 const identity = `The first flagship hackathon of ${E.organiser} at Christ College of Engineering, Irinjalakuda.`;
+const partnerMarks = `<img src="/assets/silver-storm.webp" width="475" height="240" loading="lazy" alt="Silver Storm Parks and Resorts"><img src="/assets/sky-storm.webp" width="478" height="240" loading="lazy" alt="Sky Storm Cable Car">`;
 
 const PAGES = {
   schedule: { title: "Schedule", lead: `${E.dates.label} · ${E.venue.name} ${draft("Proposed")}`, body: () =>
@@ -26,7 +27,8 @@ const PAGES = {
     `<p class="tbc">Travel and stay details for outside teams are to be confirmed. Do not book non-refundable travel until the organisers confirm the dates.</p>` },
   team: { title: "Team", lead: "Organisers, faculty, judges and mentors", body: () =>
     `<p>${esc(E.organiser)} organises HacknSky. ${esc(E.institution)}.</p>` + (Object.values(E.people).some((group) => group.length) ? Object.entries(E.people).filter(([, group]) => group.length).map(([k, group]) => `<h2>${esc(k[0].toUpperCase() + k.slice(1))}</h2><div class="cards">${group.map((p) => `<div class="card"><h3>${esc(p.name)}</h3><p>${esc(p.role || "")}</p></div>`).join("")}</div>`).join("") : `<p class="tbc">The individual organisers, faculty members, judges, mentors and speakers have not yet been announced.</p>`) },
-  sponsors: { title: "Sponsors", lead: "Proposed partnership opportunities", body: () =>
+  sponsors: { title: "Partners and sponsors", lead: "Meet the destination partner behind HacknSky’s Athirappilly experience.", body: () =>
+    `<div class="destination-partner"><div class="partner-marks">${partnerMarks}</div><h2>Official collaboration</h2><p>HacknSky is collaborating with Silver Storm in Athirappilly. The proposed programme includes a Sky Storm cable-car ride for finalists. Ride access and timing are still to be confirmed.</p></div><h2>Proposed sponsorship opportunities</h2>` +
     `<div class="cards">${E.sponsors.tiers.map((t) => `<div class="card"><h3>${esc(t.name)}</h3><p>${t.slots ? `${t.slots} proposed partnership${t.slots > 1 ? "s" : ""}.` : "For groups interested in supporting the event."}</p></div>`).join("")}</div><p>For partnership enquiries, see the <a href="../contact/">organiser contact page</a>.</p>` },
   contact: { title: "Contact", lead: "Reach the organisers", body: () =>
     (E.contact.email ? `<p>Email: <a href="mailto:${esc(E.contact.email)}">${esc(E.contact.email)}</a></p>` : `<p class="tbc">DELTA has not yet published a contact address for HacknSky. The <a href="../faq/">FAQ</a> covers eligibility, travel and accommodation.</p>`) },
@@ -52,7 +54,7 @@ const shell = (slug, p) => {
 <a class="skip" href="#main">Skip to content</a>
 <header><a class="brand" href="${depth}"><img src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky home"></a><nav aria-label="Pages">${NAV.map(([s, n]) => `<a href="${depth}${s}/"${s === slug ? ' aria-current="page"' : ""}>${n}</a>`).join("")}<a class="btn" href="${depth}register/">Register</a></nav></header>
 <main id="main" tabindex="-1"><h1>${esc(p.title)}</h1><p class="lead">${p.lead}</p>${p.body()}</main>
-<footer class="event-footer"><div class="footer-inner"><div><img class="footer-event" src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky" loading="lazy"><p>${esc(identity)}</p></div><div><span>Part of the fest</span><img class="footer-fest" src="/assets/datara-27-lockup.webp" width="1156" height="369" alt="DATARA ’27" loading="lazy"></div><div><span>In official collaboration with</span><strong>Silver Storm</strong></div><div class="footer-links"><a href="${depth}privacy/">Privacy</a><a href="${depth}terms/">Terms</a><a href="${depth}code-of-conduct/">Code of conduct</a><a href="${depth}past/">Past editions</a></div></div></footer>
+<footer class="event-footer"><div class="footer-inner"><div><img class="footer-event" src="/assets/hacknsky-lockup.webp" width="950" height="417" alt="HacknSky" loading="lazy"><p>${esc(identity)}</p></div><div><span>Part of the fest</span><img class="footer-fest" src="/assets/datara-27-lockup.webp" width="1156" height="369" alt="DATARA ’27" loading="lazy"></div><div class="footer-partners"><span>In official collaboration with</span><a class="partner-marks" href="${depth}sponsors/" aria-label="Meet our destination partner">${partnerMarks}</a></div><div class="footer-links"><a href="${depth}privacy/">Privacy</a><a href="${depth}terms/">Terms</a><a href="${depth}code-of-conduct/">Code of conduct</a><a href="${depth}past/">Past editions</a></div></div></footer>
 <script type="module" src="${depth}js/pages.js"></script></body></html>`;
 };
 
