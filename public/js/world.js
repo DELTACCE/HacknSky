@@ -199,7 +199,7 @@ export async function startWorld() {
       }`,
     fragmentShader: `uniform float time; varying vec2 vUv; varying float vFlow;
       #include <fog_pars_fragment>
-      float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+      float h(vec2 p){ vec3 q=fract(vec3(p.xyx)*.1031); q+=dot(q,q.yzx+33.33); return fract((q.x+q.y)*q.z); } // sin-free hash: stays smooth however long the page has been open
       float n(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }
       void main(){
         float sp=mix(.5,5.,vFlow);
@@ -446,7 +446,7 @@ export async function startWorld() {
         }`,
       fragmentShader: `uniform float time; uniform float ringMode; varying vec2 vP;
         #include <fog_pars_fragment>
-        float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+        float h(vec2 p){ vec3 q=fract(vec3(p.xyx)*.1031); q+=dot(q,q.yzx+33.33); return fract((q.x+q.y)*q.z); } // sin-free hash: stays smooth however long the page has been open
         float n(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }
         void main(){
           float r=length(vP), a=atan(vP.y,vP.x);
