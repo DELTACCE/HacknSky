@@ -70,7 +70,7 @@ function openSheet(key) {
   sbody.replaceChildren(t.content.cloneNode(true));
   const grid = $("#trk-grid", sbody);
   if (grid) grid.innerHTML = TRACKS.map((tr, i) => `<button class="trk" data-track="${i}" aria-pressed="false"><span class="k"><i style="background:${tr.col}"></i>Track 0${i + 1}</span><h3>${tr.k}</h3><p>${tr.tag}</p><p style="margin-top:.5rem;opacity:.65">${tr.ask}</p></button>`).join("");
-  const mount = $("#reg-mount", sbody); if (mount) mountRegistration(mount, { squad: Game.squad });
+  const mount = $("#reg-mount", sbody); if (mount) mountRegistration(mount, { squad: Game.squad, showGuide: false });
   renderSquad(); track("sheet_open", { key }); sheet.classList.add("open"); ROOT.style.overflow = "hidden"; Game.sheetOpen = true; setInert(true);
   $(".panel").scrollTop = 0; $("#sx").focus();
 }

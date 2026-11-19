@@ -11,11 +11,11 @@ const STATUS = {
   waitlist: "The list is full. Join the waitlist and we will write if a place opens.", closed: "Registrations are closed.",
 };
 
-export function mountRegistration(mount, { squad = -1 } = {}) {
+export function mountRegistration(mount, { squad = -1, showGuide = true } = {}) {
   const base = mount.dataset.base || "", st = CONFIG.registration.status in STATUS ? CONFIG.registration.status : "soon", closed = st === "closed";
   const dl = CONFIG.registration.deadline ? ` Deadline: ${esc(CONFIG.registration.deadline)}.` : "";
   if (closed || st === "soon" || !(CONFIG.formEndpoint || CONFIG.registerUrl)) {
-    mount.innerHTML = `<p class="reg-status"><b>${closed ? "Registration is closed." : "Registration opens soon."}</b> We are not collecting applications right now.</p><p><a href="${base}guide/">Read the participant guide</a></p>`;
+    mount.innerHTML = `<p class="reg-status"><b>${closed ? "Registration is closed." : "Registration opens soon."}</b> We are not collecting applications right now.</p>${showGuide ? `<p><a href="${base}guide/">Read the participant guide</a></p>` : ""}`;
     return;
   }
   if (CONFIG.registerUrl) { mount.innerHTML = `<a class="btn" href="${esc(CONFIG.registerUrl)}">Register</a>`; return; }
