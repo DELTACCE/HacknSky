@@ -48,13 +48,15 @@ async function start() {
   await startWorld(profile);
   const { playIntro } = await import("./intro.js").catch(() => ({}));
   if (ROOT.classList.contains("nogl")) return;
+  const revealValley = () => {
+    if (ROOT.classList.contains("nogl")) $("#loadout").classList.remove("gone");
+    else enter(false);
+  };
   if (playIntro) {
     await new Promise((onDone) => {
-      playIntro({ onDone });
       $("#loadout").classList.add("gone");
+      playIntro({ onExit: revealValley, onDone });
     });
     if (rb) rb.onclick = () => playIntro();
-  }
-  if (ROOT.classList.contains("nogl")) $("#loadout").classList.remove("gone");
-  else enter(false);
+  } else revealValley();
 }

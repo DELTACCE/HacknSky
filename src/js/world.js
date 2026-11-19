@@ -859,7 +859,13 @@ export async function startWorld(profile) {
   let rzT; addEventListener("resize", () => { clearTimeout(rzT); rzT = setTimeout(resize, 120); });
   addEventListener("load", measure);
   new ResizeObserver(measure).observe(document.body);
-  Game.onStart = () => { measure(); setTimeout(() => (heroReady = true), reduced ? 100 : 1700); };
+  Game.onStart = () => {
+    measure();
+    smooth = stageAt(scrollY);
+    clock.start();
+    tick(0, 0); // Replace the rehearsal view before the intro overlay starts fading.
+    setTimeout(() => (heroReady = true), reduced ? 100 : 1700);
+  };
   let intro0 = null;
 
   // wait for the page font, then build every caption texture once

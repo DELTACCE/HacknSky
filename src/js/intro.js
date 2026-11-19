@@ -26,9 +26,10 @@ export function initIntro({ onDone } = {}) {
   window.playHackNSkyIntro = () => playIntro();
 }
 
-export function playIntro({ onDone } = {}) {
+export function playIntro({ onExit, onDone } = {}) {
   const introEl = document.getElementById("brand-intro");
   if (!introEl) {
+    onExit?.();
     onDone?.();
     return;
   }
@@ -57,6 +58,7 @@ export function playIntro({ onDone } = {}) {
     if (!isIntroActive) return;
     isIntroActive = false;
     clearTimeout(safety);
+    onExit?.();
     introEl.classList.add("is-exiting");
 
     const duration = prefersReduced ? 0 : 550;
