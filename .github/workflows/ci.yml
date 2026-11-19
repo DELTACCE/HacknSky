@@ -13,3 +13,30 @@ jobs:
       - run: node scripts/check-links.mjs
       - run: npx playwright install --with-deps chromium && node tests/smoke.mjs
       - run: npx -y @lhci/cli@0.13 autorun
+
+  deploy:
+    needs: check
+    if: github.event_name == 'push' && github.ref_type == 'branch' && !github.event.deleted
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: vercel-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --global vercel@65.17.0
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_JAzZpk485AMbXzTnM7P2sw7Q
+          VERCEL_PROJECT_ID: prj_ZWlHMeAxmIJr7UVobHv5SyDvU6O2
+        run: |
+          : "${VERCEL_TOKEN:?Add the VERCEL_TOKEN repository Actions secret}"
+          args=(--yes --token "$VERCEL_TOKEN")
+          if [[ "$GITHUB_REF" == refs/heads/main ]]; then args+=(--prod); fi
+          vercel deploy "${args[@]}"
