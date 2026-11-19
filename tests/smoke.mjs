@@ -17,9 +17,9 @@ try {
     if (p === "") pg.on("console", (m) => { if (m.type() === "error") errs.push(m.text()); });
     await pg.goto(`${base}/${p}`);
     if (p === "") {
-      await pg.evaluate(() => localStorage.setItem("hns-intro-seen", "1"));
-      await pg.reload({ waitUntil: "domcontentloaded" });
       assert.equal(await pg.locator("#intro-skip").count(), 0);
+      await pg.locator("#brand-intro.is-playing").waitFor({ timeout: 90000 });
+      assert.equal(await pg.locator("#bootmsg").textContent(), "100%");
       await pg.locator("#brand-intro").waitFor({ state: "hidden" });
       await pg.locator("#loadout.gone").waitFor({ state: "attached", timeout: 30000 });
       await pg.locator("#gl[data-valley=ready]").waitFor();
@@ -53,12 +53,14 @@ try {
   assert(await fallback.locator("#destination h2").isVisible(), "WebGL fallback did not expose the content");
   console.log("ok   WebGL fallback");
   assert(await fallback.evaluate(() => Math.abs(document.querySelector('#destination').getBoundingClientRect().top) < 2), "Lost the chapter anchor");
-  const phone = await b.newPage({ isMobile: true, hasTouch: true, viewport: { width: 390, height: 844 } });
-  const downloads = []; phone.on("request", r => downloads.push(r.url()));
-  await phone.goto(base); await phone.locator("#entry-choice a").click();
-  await phone.getByRole("heading", { name: "Participant guide", exact: true }).waitFor();
-  assert(!downloads.some(url => /\/assets\/(?:world|three|intro)-/.test(url)), "Guide choice downloaded 3D");
-  console.log("ok   Mobile guide without 3D");
+  const phone = await b.newPage({ isMobile: true, hasTouch: true, reducedMotion: "reduce", viewport: { width: 390, height: 844 } });
+  await phone.goto(base);
+  assert.equal(await phone.locator("#entry-choice").count(), 0);
+  await phone.locator("#brand-intro.is-playing").waitFor({ timeout: 90000 });
+  assert.equal(await phone.locator("#bootmsg").textContent(), "100%");
+  await phone.locator("#brand-intro").waitFor({ state: "hidden" });
+  await phone.locator("#gl[data-valley=ready]").waitFor();
+  console.log("ok   Mobile loader, intro and valley without a chooser");
 } finally {
   await b?.close();
   await new Promise((resolve) => server.httpServer.close(resolve));

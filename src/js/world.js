@@ -2,7 +2,7 @@
 // in-world 3D captions and camera journey. three.js comes from npm and is tree-shaken by the bundler.
 import * as THREE from "three";
 import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
-import { $, $$, ROOT, CH, TRACKS, Game, bootT0, show, boot, showError, failWorld, enter, setSquad, pad, track } from "./ui.js";
+import { $, $$, ROOT, CH, TRACKS, Game, bootT0, show, boot, showError, failWorld, setSquad, pad, track } from "./ui.js";
 import { mountValleyDetails } from "./valley/ValleyDetails.jsx";
 
 export async function startWorld(profile) {
@@ -986,5 +986,4 @@ export async function startWorld(profile) {
   frame();
   await new Promise((r) => setTimeout(r, Math.max(0, 950 - (performance.now() - bootT0)))); // storybook intro minimum hold
   track("loaded", { ms: Math.round(performance.now() - bootT0), profile });
-  if (!contextLost && !ROOT.classList.contains("nogl")) enter(false);
 }

@@ -40,7 +40,6 @@ nav ul a:hover,nav ul a.on{opacity:1}nav ul a.on{border-color:var(--lime)}
 #top{min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;max-width:1400px;margin:0 auto;padding:calc(5rem + var(--sat)) max(var(--gx),var(--sal)) calc(4.5rem + var(--sab))}
 .heroact{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1.7rem;transition:opacity .5s,transform .5s,visibility 0s}
 .hero-summary{flex-basis:100%;margin:0 0 .35rem;color:white;font-weight:700;text-shadow:0 1px 4px #071c18,0 0 12px #071c18}.hero-summary small{display:block;font-weight:500}#date-note{margin:0;max-width:calc(100% - 2 * var(--gx))}
-#entry-choice{max-width:min(24rem,90vw);border:0;padding:2rem;background:var(--paper);color:var(--ink)}#entry-choice::backdrop{background:var(--emerald)}#entry-choice img{width:9rem;height:auto}#entry-choice h2{margin:.75rem 0;font-size:2rem}#entry-choice .btn{margin:.3rem 0}#entry-choice .btn-ghost{background:var(--emerald);color:white}
 .fest-credit{align-self:flex-start;display:flex;align-items:center;gap:.85rem;margin:0 0 .85rem;padding:.5rem .8rem;background:var(--paper);color:var(--ink);border-left:3px solid var(--lime)}
 .fest-credit img{width:clamp(4.4rem,8vw,6rem);height:auto}.fest-credit p{margin:0;padding-left:.8rem;border-left:1px solid #adb4a5;font-size:clamp(.7rem,1vw,.85rem);font-weight:700;line-height:1.3}.fest-credit span{display:block;margin-top:.15rem;color:#40554b;font-weight:500}
 body.scrolled .fest-credit{visibility:hidden}
