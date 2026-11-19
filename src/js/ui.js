@@ -32,8 +32,9 @@ const bootT0 = performance.now(), loadout = $("#loadout"), skip = $("#skip"), ba
 ROOT.style.overflow = "hidden";
 $("#rail").innerHTML = CH.map((c, i) => `<button data-ch="${i}" aria-label="${c.name}" title="${c.name}"><i></i></button>`).join("");
 let shown = 0, slowNet = false; setTimeout(() => (slowNet = true), 9000);
-const show = (v) => { shown = Math.min(100, Math.max(shown, Math.round(v))); bar.style.transform = `scaleX(${shown / 100})`; bootmsg.textContent = shown + "%" + (slowNet && shown < 100 ? " · slow connection" : ""); };
-const boot = async (p, m) => { show(38 + p * 0.62, m); await new Promise((r) => setTimeout(r, 30)); }; // world-building steps use 38..100 of the bar; engine 0..30, fonts 30..38
+const show = (v, m) => { shown = Math.min(100, Math.max(shown, Math.round(v))); bar.style.transform = `scaleX(${shown / 100})`; bootmsg.textContent = shown + "%" + (m && shown < 100 ? " · " + m : "") + (slowNet && shown < 40 ? " · slow connection" : ""); };
+// world-building steps use 38..72 of the bar (engine 0..30, fonts 30..38); captions, images, shader compile and the hidden scroll rehearsal fill 72..100
+const boot = async (p, m) => { show(38 + p * 0.34, m); await new Promise((r) => setTimeout(r, 30)); };
 const showError = (m) => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => (t.style.display = "none"), 6000); console.error(m); };
 const failWorld = (m) => { ROOT.classList.add("nogl"); bootmsg.textContent = m; skip.style.display = "inline-flex"; const rt = $("#retry"); if (rt) { rt.style.display = "inline-flex"; rt.onclick = () => location.reload(); } console.error(m); };
 function enter(plain) {

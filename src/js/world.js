@@ -8,9 +8,12 @@ import { mountValleyDetails } from "./valley/ValleyDetails.jsx";
 export async function startWorld(profile) {
   show(30, "Loading fonts");
   { const f0 = getComputedStyle(document.body).fontFamily.split(",")[0].trim(); // fonts are part of the loader now, so the lettering never pops in late
-    await Promise.race([Promise.all([600, 700, 800].map((w) => document.fonts.load(`${w} 100px ${f0}`))), new Promise((r) => setTimeout(r, 3500))]).catch(() => {}); show(37, "Loading fonts"); }
+    await Promise.race([Promise.all([400, 500, 600, 700, 800].map((w) => document.fonts.load(`${w} 100px ${f0}`))), new Promise((r) => setTimeout(r, 3500))]).catch(() => {}); show(37, "Loading fonts"); }
+  // every picture on the page (the lazy ones too) is fetched and decoded behind the loader, so none of them pops in mid-scroll
+  const imagesReady = Promise.race([Promise.allSettled($$("img").filter((im) => !im.closest("#brand-intro")).map((im) => { im.loading = "eager"; im.decoding = "sync"; return im.decode ? im.decode() : Promise.resolve(); })), new Promise((r) => setTimeout(r, 8000))]);
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const light = profile !== "full", low = profile === "low";
+  // "low" is the only reduced tier now: phones ("mobile") render the same shaders, shadows, outlines and density as desktop.
+  const low = profile === "low", light = low, coarse = !low && matchMedia("(pointer: coarse)").matches;
   const canvas = $("#gl");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !light, powerPreference: low ? "low-power" : "high-performance" });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -615,7 +618,7 @@ export async function startWorld(profile) {
   Game.onSquad.push(() => { /* highlight handled per frame */ });
 
   // ---- in-world captions (MiSide style) -------------------------------------
-  const PX = light ? { black: 104, semi: 54 } : { black: 150, semi: 76 }, WGT = { black: 800, semi: 600 }, CAP_MID = 0.35;
+  const PX = light ? { black: 104, semi: 54 } : coarse ? { black: 128, semi: 64 } : { black: 150, semi: 76 }, WGT = { black: 800, semi: 600 }, CAP_MID = 0.35;
   const WARM = "#fffaf0", CREAM = "#fbf5e7", LIME = "#c6f04e", PALE = "#dcf58a";
   const eyebrow = { font: "semi", ls: 0.16, c0: WARM, c1: CREAM, unit: "word", outline: 0.14 };
   const label = { font: "semi", ls: 0.2, c0: "#e3fb8f", c1: LIME, unit: "word", outline: 0.14 };
@@ -721,13 +724,17 @@ export async function startWorld(profile) {
   const textRoot = new THREE.Group(); scene.add(textRoot);
   let captions = {}, fam = null, portrait = false, aspect = 1;
   let specsNow = {}, mctx = null;
-  function buildCaptions() { // texture work is lazy: only the captions near the current chapter exist at any time
+  function buildCaptions() { // every caption is built (and uploaded to the GPU) behind the loader; a later rebuild (rotation) is queued one per frame
     textRoot.traverse((node) => { if (node.isMesh) { node.material.map.dispose(); node.material.dispose(); } });
     textRoot.clear(); captions = {}; capQ.length = 0; if (!fam) return;
-    mctx = document.createElement("canvas").getContext("2d"); specsNow = getSpecs(portrait); ensureCaptions(Math.max(curCh, 0)); clearForText();
+    mctx = document.createElement("canvas").getContext("2d"); specsNow = getSpecs(portrait); capQ.push(...Object.keys(specsNow)); clearForText();
   }
-  const capQ = []; // after the loader, captions are built one per frame so a chapter change never stalls the phone
-  function ensureCaptions(ch) { for (const [id, spec] of Object.entries(specsNow)) if (!captions[id] && Math.abs(Math.floor(spec.stage) - ch) <= 1) { if (!Game.started) buildOne(id, spec); else if (!capQ.includes(id)) capQ.push(id); } }
+  const capQ = []; // captions waiting to be built: drained by the loader (with progress), or one per frame after a rebuild so nothing stalls
+  function ensureCaptions() { for (const id of Object.keys(specsNow)) if (!captions[id] && !capQ.includes(id)) capQ.push(id); }
+  async function drainCaptions(from, to) {
+    const total = capQ.length || 1;
+    while (capQ.length) { const id = capQ.shift(); if (!captions[id] && specsNow[id]) { try { buildOne(id, specsNow[id]); } catch (e) { showError("3D caption failed: " + e.message); } } show(from + (to - from) * (1 - capQ.length / total), "Lettering the world"); await new Promise((r) => setTimeout(r, 0)); }
+  }
   function buildOne(id, spec) {
     {
       const { p, fwd, right, up, pt, depth, halfH, halfW } = frameOf(spec, portrait, aspect), base = spec.size * 2 * halfH;
@@ -837,10 +844,14 @@ export async function startWorld(profile) {
   addEventListener("pointermove", (e) => { pointer.x = (e.clientX / innerWidth - 0.5) * 2; pointer.y = (e.clientY / innerHeight - 0.5) * 2; }, { passive: true });
   let capKey = "";
   let rW = 0, rH = 0;
+  let resScale = 1; // runtime resolution guard: only ever lowered, and only if the device genuinely can't keep up
+  function applyBuffer() {
+    const pixels = low ? 0.5e6 : coarse ? 2.6e6 : 4e6;
+    renderer.setDrawingBufferSize(rW, rH, Math.min(devicePixelRatio, low ? 1.25 : coarse ? 2 : 1.75, Math.sqrt(pixels / (rW * rH))) * resScale);
+  }
   function resize() {
-    const w = innerWidth, h = innerHeight; if (rW && w === rW && (h === rH || (light && Math.abs(h - rH) < rH * 0.22))) return; rW = w; rH = h;
-    const pixels = low ? 0.5e6 : light ? 0.9e6 : 4e6;
-    renderer.setDrawingBufferSize(w, h, Math.min(devicePixelRatio, low ? 1.25 : 1.75, Math.sqrt(pixels / (w * h))));
+    const w = innerWidth, h = innerHeight; if (rW && w === rW && (h === rH || ((light || coarse) && Math.abs(h - rH) < rH * 0.22))) return; rW = w; rH = h;
+    applyBuffer();
     portrait = w / h < 0.9; aspect = Math.round((w / h) * 20) / 20 || 1;
     camera.aspect = w / h; camera.fov = portrait ? 58 : 45; camera.updateProjectionMatrix(); measure();
     const key = portrait + "|" + aspect; if (fam && key !== capKey) { capKey = key; buildCaptions(); }
@@ -852,10 +863,11 @@ export async function startWorld(profile) {
   let intro0 = null;
 
   // wait for the page font, then build every caption texture once
-  await boot(92, "Lettering the world");
+  show(72, "Lettering the world");
   fam = getComputedStyle(document.body).fontFamily; resize();
   if (!capKey) { capKey = portrait + "|" + aspect; try { buildCaptions(); } catch (e) { showError("3D captions failed: " + e.message); } }
-  await boot(95, "Detailing the landmarks");
+  await drainCaptions(72, 78);
+  show(78, "Detailing the landmarks");
   const motion = { time: 0, stage: 0, cablePosition: .5, quality: low ? 5 : light ? 1 : 0, reduced, coarse: light };
   const landmarks = await mountValleyDetails({
     canvas, renderer, scene, camera, motion, cabins: [cabinA, cabinB],
@@ -868,25 +880,15 @@ export async function startWorld(profile) {
     landmarks.dispose();
     failWorld("The 3D scene lost its graphics connection. You can still read the plain page.");
   }, { once: true });
-  await boot(97, "Compiling shaders");
-  try { camera.position.set(8, 17, 46); camera.lookAt(-2, 11, -16); if (renderer.compileAsync && renderer.extensions.has("KHR_parallel_shader_compile")) await renderer.compileAsync(scene, camera); else renderer.compile(scene, camera); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camera); } catch (e) { showError("Render warm-up failed: " + e.message); }
-  await boot(100, "World ready");
+  show(80, "Loading pictures"); await imagesReady; show(82, "Loading pictures");
 
   // ---- render loop -----------------------------------------------------------
   const clock = new THREE.Clock();
-  let shadowTick = 0, frameBudget = 0, elapsed = 0, perfT = 0, perfN = 0;
-  function frame() {
-    if (contextLost || ROOT.classList.contains("nogl")) return;
-    requestAnimationFrame(frame);
-    const raw = clock.getDelta();
-    if (document.hidden || !Game.started || Game.sheetOpen) { elapsed = frameBudget = 0; return; }
-    elapsed += raw;
-    if (light) { frameBudget += raw; if (frameBudget < 1 / 30) return; frameBudget %= 1 / 30; }
-    const dt = Math.min(elapsed, 0.1), time = reduced ? 0 : clock.elapsedTime;
-    perfT += elapsed; elapsed = 0;
-    if (++perfN === 600) track("perf", { avgMs: Math.round(perfT / perfN * 1000), profile, dpr: renderer.getPixelRatio() });
+  let shadowTick = 0, frameBudget = 0, elapsed = 0, perfT = 0, perfN = 0, warming = false, slowRun = 0, settle = 0;
+  // one world update + draw. The live loop and the hidden scroll rehearsal below run exactly the same code.
+  function tick(dt, time) {
     const sy = scrollY; updateBeats(sy);
-    const target = stageAt(sy); smooth = reduced ? target : smooth + (target - smooth) * (1 - Math.exp(-dt * 5.5)); stage = smooth; cabU = reduced ? .42 : cabinU(stage, time);
+    const target = stageAt(sy); smooth = reduced || warming ? target : smooth + (target - smooth) * (1 - Math.exp(-dt * 5.5)); stage = smooth; cabU = reduced ? .42 : cabinU(stage, time);
     const p = pose(stage, portrait, time);
     if (intro0 === null) intro0 = time; // opening swoop: drop in from high above onto the hero view
     const it = reduced ? 1 : clamp((time - intro0) / 3.6, 0, 1), lift = Math.pow(1 - it, 3) * (1 - sm(0, 0.5, stage));
@@ -924,6 +926,63 @@ export async function startWorld(profile) {
     motion.cablePosition = u;
     landmarks.render(time);
   }
+  function frame() {
+    if (contextLost || ROOT.classList.contains("nogl")) return;
+    requestAnimationFrame(frame);
+    const raw = clock.getDelta();
+    if (document.hidden || !Game.started || Game.sheetOpen) { elapsed = frameBudget = 0; settle = 0; return; }
+    elapsed += raw;
+    if (light) { frameBudget += raw; if (frameBudget < 1 / 30) return; frameBudget %= 1 / 30; }
+    const dt = Math.min(elapsed, 0.1), time = reduced ? 0 : clock.elapsedTime;
+    perfT += elapsed; elapsed = 0;
+    if (++perfN === 600) track("perf", { avgMs: Math.round(perfT / perfN * 1000), profile, dpr: renderer.getPixelRatio() });
+    // resolution guard: if a device really can't hold ~30 fps, trade pixels (never effects) until it can
+    if (!light && ++settle > 90) { slowRun = raw > 0.04 && raw < 0.5 ? slowRun + 1 : Math.max(0, slowRun - 2); if (slowRun > 45 && resScale > 0.6) { resScale = Math.max(0.6, resScale * 0.85); slowRun = 0; applyBuffer(); } }
+    tick(dt, time);
+  }
+
+  // ---- warm-up: compile, upload and rehearse the whole scroll while the loader is up ----------
+  const nextFrame = () => new Promise((r) => { let d = false; const f = () => { if (!d) { d = true; r(); } }; requestAnimationFrame(f); setTimeout(f, 100); });
+  async function warmUp() {
+    // 1) Every shader program, shadow program, texture and buffer, including everything normally culled or hidden
+    //    (off-screen forests, caption letters, track beams), so nothing is first-used while the reader scrolls.
+    show(82, "Compiling shaders");
+    const culled = [], hidden = [];
+    scene.traverse((o) => { if (o.frustumCulled) { o.frustumCulled = false; culled.push(o); } });
+    const reveal = (o) => { hidden.push([o, o.visible]); o.visible = true; };
+    for (const cap of Object.values(captions)) for (const ln of cap.lines) { reveal(ln.lg); for (const un of ln.units) reveal(un.g); }
+    for (const t of totems) reveal(t.beam);
+    camera.position.set(8, 17, 46); camera.lookAt(-2, 11, -16); camera.updateMatrixWorld();
+    try { if (renderer.compileAsync && renderer.extensions.has("KHR_parallel_shader_compile")) await renderer.compileAsync(scene, camera); else renderer.compile(scene, camera); } catch (e) { console.warn("compile warm-up:", e); }
+    show(86, "Uploading the valley");
+    try { renderer.shadowMap.needsUpdate = true; renderer.render(scene, camera); } catch (e) { showError("Render warm-up failed: " + e.message); }
+    await nextFrame();
+    for (const o of culled) o.frustumCulled = true;
+    for (const [o, v] of hidden) o.visible = v;
+    // 2) Rehearse the scroll for real: walk the actual page top to bottom, running the same update and draw code as the live loop,
+    //    so layout, chapter HUD, captions, falls detail, cabins and every camera angle are already warm on the first real scroll.
+    if (document.hidden || contextLost) return;
+    const y0 = scrollY, vhNow = innerHeight, maxY = Math.max(0, ROOT.scrollHeight - vhNow), n = clamp(Math.round(maxY / (vhNow * 0.28)), 24, 90), t0 = performance.now();
+    warming = true; intro0 = -1e3; let simT = 0;
+    try {
+      for (let i = 0; i <= n; i++) {
+        scrollTo(0, Math.round(maxY * i / n)); simT += 0.12; tick(0.12, simT);
+        show(88 + 11 * i / n, "Rehearsing the scroll");
+        await nextFrame();
+        if (performance.now() - t0 > 20000 || contextLost) break; // never let a very slow device sit on the loader
+      }
+    } catch (e) { console.warn("scroll rehearsal:", e); }
+    // 3) Put everything back exactly as a fresh visit expects it
+    scrollTo(0, y0);
+    for (const cap of Object.values(captions)) for (const ln of cap.lines) { ln.vis = false; ln.t = 0; ln.lg.visible = false; for (const un of ln.units) { un.p = 0; un.g.visible = false; un.front.material.opacity = un.back.material.opacity = 0; } }
+    smooth = 0; curCh = -1; fz = 0; intro0 = -1e3; try { tick(0.016, simT); } catch (e) { /* the live loop redraws next frame */ }
+    intro0 = null; warming = false; shadowTick = 0; slowRun = 0; settle = 0; elapsed = frameBudget = 0; clock.getDelta();
+    for (const cap of Object.values(captions)) for (const ln of cap.lines) { ln.vis = false; ln.t = 0; ln.lg.visible = false; for (const un of ln.units) { un.p = 0; un.g.visible = false; un.front.material.opacity = un.back.material.opacity = 0; } }
+    smooth = 0; curCh = -1;
+  }
+  try { await warmUp(); } catch (e) { warming = false; intro0 = null; console.warn("warm-up:", e); }
+  show(99, "World ready"); await boot(100, "World ready"); show(100);
+
   frame();
   await new Promise((r) => setTimeout(r, Math.max(0, 950 - (performance.now() - bootT0)))); // storybook intro minimum hold
   track("loaded", { ms: Math.round(performance.now() - bootT0), profile });

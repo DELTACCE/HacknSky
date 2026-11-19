@@ -9,7 +9,11 @@ const requested = params.get("gfx"), saved = store.get("hns-gfx");
 const mode = modes.includes(requested) ? requested : modes.includes(saved) ? saved : "auto";
 const plain = params.has("plain") || store.get("hns-plain") === "1";
 const mobile = matchMedia("(pointer: coarse)").matches || screen.width < 700;
-const profile = mode !== "auto" ? mode : !mobile ? "full" : (navigator.deviceMemory <= 4 || navigator.hardwareConcurrency <= 4) ? "low" : "mobile";
+// Phones now get the same shaders, shadows, ink outlines and density as desktop ("mobile" only tunes the render-buffer budget and
+// texture sizes). Only genuinely weak devices (<=2 GB or <=2 cores) fall back to "low"; a runtime resolution guard in world.js
+// protects everything else, and the Graphics button still lets anyone pick Low by hand.
+const weak = navigator.deviceMemory <= 2 || navigator.hardwareConcurrency <= 2;
+const profile = mode !== "auto" ? mode : !mobile ? "full" : weak ? "low" : "mobile";
 ROOT.dataset.graphics = plain ? "plain" : profile;
 const restart = (url) => { if (url.href === location.href) location.reload(); else location.assign(url.href); };
 
