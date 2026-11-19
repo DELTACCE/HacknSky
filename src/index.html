@@ -24,7 +24,7 @@
 </head>
 <body>
 <!-- ================= 3D brand intro ================= -->
-<div id="brand-intro" class="brand-intro" role="dialog" aria-modal="true" aria-label="Welcome to HACKnSKY" tabindex="-1" style="display:none">
+<div id="brand-intro" class="brand-intro" role="dialog" aria-modal="true" aria-label="Welcome to HACKnSKY" tabindex="-1">
   <div class="intro-artwork" role="img" aria-label="HACKnSKY — a cable car above the rainforest">
     <div class="intro-canvas" id="intro-canvas"></div>
     <div class="intro-fallback" id="intro-fallback" style="display:none">
@@ -36,39 +36,9 @@
 <canvas id="gl" aria-hidden="true"></canvas>
 <div id="toast"></div>
 
-<!-- ================= animated loader ================= -->
+<!-- Shown below the finished intro only if the valley is still loading. -->
 <div id="loadout" class="loader" role="status" aria-live="polite" aria-label="Loading HacknSky">
   <div class="loader-inner">
-    <svg viewBox="0 0 320 150" class="loader-svg" aria-hidden="true">
-          <line x1="0" y1="26" x2="320" y2="26" class="loader-cable" />
-          <g class="loader-ride">
-            <g transform="translate(160 26)">
-              <rect x="-2.2" y="-3" width="4.4" height="6" rx="1" fill="#2c4a6e" />
-              <line x1="0" y1="3" x2="0" y2="26" stroke="#8a5a3a" stroke-width="3" />
-              <g class="loader-sway">
-                <rect x="-26" y="26" width="52" height="4" rx="2" fill="#2c4a6e" />
-                <polygon
-                  points="-30,40 0,28 30,40"
-                  fill="#f7efe0"
-                  stroke="#2c4a6e"
-                  stroke-width="2.5"
-                  stroke-linejoin="round"
-                />
-                <rect x="-24" y="40" width="48" height="30" rx="3" fill="#f7efe0" stroke="#2c4a6e" stroke-width="2.5" />
-                <rect x="-24" y="56" width="48" height="6" fill="#e0714a" />
-                <rect x="-19" y="45" width="16" height="10" rx="1.5" fill="#79bfd8" stroke="#2c4a6e" stroke-width="1.5" />
-                <rect x="3" y="45" width="16" height="10" rx="1.5" fill="#79bfd8" stroke="#2c4a6e" stroke-width="1.5" />
-                <rect x="-24" y="66" width="48" height="5" rx="2" fill="#2c4a6e" />
-              </g>
-            </g>
-          </g>
-          <g class="loader-mtn" fill="#2d6a4c">
-            <polygon points="0,150 60,112 100,136 150,98 200,132 250,108 320,150" opacity="0.5" />
-            <polygon points="0,150 40,130 90,150" />
-            <polygon points="320,150 270,126 220,150" />
-          </g>
-        </svg>
-    <p class="loader-name">HacknSky</p>
     <div class="loader-bar" aria-hidden="true"><span id="barfill" style="transform:scaleX(0)"></span></div>
     <p class="loader-pct" id="bootmsg">0%</p>
     <button class="btn" id="retry" style="display:none">Try again</button>

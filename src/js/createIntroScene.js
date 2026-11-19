@@ -403,6 +403,7 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
     const visibleHeight = Math.max((W / logoWidth) * height, H / 0.5);
     camera.fov = (2 * Math.atan(visibleHeight / 2 / D) * 180) / Math.PI;
     camera.updateProjectionMatrix();
+    if (completed) renderer.render(scene, camera);
   };
   const frame = (ms) => {
     raf = 0;
@@ -421,11 +422,12 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
     if (!completed && elapsed >= 6.6) {
       completed = true;
       onComplete?.();
+      return;
     }
     raf = requestAnimationFrame(frame);
   };
   const start = () => {
-    if (disposed || failed || !loaded || raf || document.hidden) return;
+    if (disposed || failed || completed || !loaded || raf || document.hidden) return;
     last = performance.now();
     raf = requestAnimationFrame(frame);
   };

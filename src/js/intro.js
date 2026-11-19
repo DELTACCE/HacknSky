@@ -26,7 +26,7 @@ export function initIntro({ onDone } = {}) {
   window.playHackNSkyIntro = () => playIntro();
 }
 
-export function playIntro({ onExit, onDone } = {}) {
+export function playIntro({ waitForWorld, onExit, onDone } = {}) {
   const introEl = document.getElementById("brand-intro");
   if (!introEl) {
     onExit?.();
@@ -54,10 +54,16 @@ export function playIntro({ onExit, onDone } = {}) {
   document.body.classList.add("intro-open");
   isIntroActive = true;
 
-  const dismiss = () => {
+  const dismiss = async () => {
     if (!isIntroActive) return;
     isIntroActive = false;
     clearTimeout(safety);
+    if (!introEl.classList.contains("is-playing") && fallback) {
+      if (canvasHost) canvasHost.style.display = "none";
+      fallback.style.display = "grid";
+      introEl.classList.add("is-playing");
+    }
+    if (waitForWorld) await waitForWorld();
     onExit?.();
     introEl.classList.add("is-exiting");
 

@@ -44,19 +44,28 @@ if (plain) {
 
 async function start() {
   show(4, "Loading engine");
-  const { startWorld } = await import("./world.js");
-  await startWorld(profile);
+  let ready = false;
+  const world = import("./world.js").then(({ startWorld }) => startWorld(profile)).then(() => { ready = true; })
+    .catch((e) => failWorld("Couldn’t load the 3D scene: " + e.message));
+  const waitForWorld = () => {
+    if (!ready) $("#loadout").classList.add("waiting");
+    return world;
+  };
   const { playIntro } = await import("./intro.js").catch(() => ({}));
-  if (ROOT.classList.contains("nogl")) return;
   const revealValley = () => {
     if (ROOT.classList.contains("nogl")) $("#loadout").classList.remove("gone");
     else enter(false);
   };
   if (playIntro) {
     await new Promise((onDone) => {
-      $("#loadout").classList.add("gone");
-      playIntro({ onExit: revealValley, onDone });
+      playIntro({ waitForWorld, onExit: revealValley, onDone });
     });
     if (rb) rb.onclick = () => playIntro();
-  } else revealValley();
+  } else {
+    $("#brand-intro").classList.add("is-playing");
+    $("#intro-fallback").style.display = "grid";
+    await waitForWorld();
+    $("#brand-intro").remove();
+    revealValley();
+  }
 }

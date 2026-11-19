@@ -19,8 +19,8 @@ try {
     if (p === "") {
       assert.equal(await pg.locator("#intro-skip").count(), 0);
       await pg.locator("#brand-intro.is-playing").waitFor({ timeout: 90000 });
+      await pg.locator("#brand-intro").waitFor({ state: "hidden", timeout: 90000 });
       assert.equal(await pg.locator("#bootmsg").textContent(), "100%");
-      await pg.locator("#brand-intro").waitFor({ state: "hidden" });
       await pg.locator("#loadout.gone").waitFor({ state: "attached", timeout: 30000 });
       await pg.locator("#gl[data-valley=ready]").waitFor();
       for (const [id, chapter] of [["destination", "02"], ["cable-car", "03"]]) {
@@ -54,13 +54,21 @@ try {
   console.log("ok   WebGL fallback");
   assert(await fallback.evaluate(() => Math.abs(document.querySelector('#destination').getBoundingClientRect().top) < 2), "Lost the chapter anchor");
   const phone = await b.newPage({ isMobile: true, hasTouch: true, reducedMotion: "reduce", viewport: { width: 390, height: 844 } });
-  await phone.goto(base);
+  let resume;
+  const delayWorld = new Promise((resolve) => { resume = resolve; });
+  await phone.route("**/assets/world-*.js", async (route) => { await delayWorld; await route.continue(); });
+  await phone.goto(base, { waitUntil: "domcontentloaded" });
   assert.equal(await phone.locator("#entry-choice").count(), 0);
   await phone.locator("#brand-intro.is-playing").waitFor({ timeout: 90000 });
-  assert.equal(await phone.locator("#bootmsg").textContent(), "100%");
-  await phone.locator("#brand-intro").waitFor({ state: "hidden" });
+  assert.equal(await phone.locator("#loadout").isVisible(), false);
+  await phone.locator("#loadout.waiting").waitFor();
+  assert.match(await phone.locator("#bootmsg").textContent(), /^4%/);
+  assert(await phone.locator("#brand-intro").isVisible());
+  resume();
+  await phone.locator("#brand-intro").waitFor({ state: "hidden", timeout: 90000 });
+  assert.equal(await phone.locator("#loadout").isVisible(), false);
   await phone.locator("#gl[data-valley=ready]").waitFor();
-  console.log("ok   Mobile loader, intro and valley without a chooser");
+  console.log("ok   Mobile intro holds with progress until the valley is ready");
 } finally {
   await b?.close();
   await new Promise((resolve) => server.httpServer.close(resolve));
