@@ -45,7 +45,6 @@ export function playIntro({ onDone } = {}) {
 
   const canvasHost = document.getElementById("intro-canvas");
   const fallback = document.getElementById("intro-fallback");
-  const skipBtn = document.getElementById("intro-skip");
 
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -57,7 +56,6 @@ export function playIntro({ onDone } = {}) {
   const dismiss = () => {
     if (!isIntroActive) return;
     isIntroActive = false;
-    window.removeEventListener("keydown", onKeyDown);
     clearTimeout(safety);
     introEl.classList.add("is-exiting");
 
@@ -74,25 +72,6 @@ export function playIntro({ onDone } = {}) {
       onDone?.();
     }, duration);
   };
-
-  if (skipBtn) {
-    skipBtn.onclick = (e) => {
-      e.preventDefault();
-      dismiss();
-    };
-  }
-
-  const onKeyDown = (e) => {
-    if (!isIntroActive) return;
-    if (e.key === "Escape") {
-      dismiss();
-    }
-    if (e.key === "Tab") {
-      e.preventDefault();
-      skipBtn?.focus();
-    }
-  };
-  window.addEventListener("keydown", onKeyDown);
 
   // Safety timeout in case WebGL or animation stalls
   const safety = setTimeout(dismiss, 12000);

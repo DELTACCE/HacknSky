@@ -19,7 +19,8 @@ try {
     if (p === "") {
       await pg.evaluate(() => localStorage.setItem("hns-intro-seen", "1"));
       await pg.reload({ waitUntil: "domcontentloaded" });
-      await pg.locator("#intro-skip").click();
+      assert.equal(await pg.locator("#intro-skip").count(), 0);
+      await pg.locator("#brand-intro").waitFor({ state: "hidden" });
       await pg.locator("#loadout.gone").waitFor({ state: "attached", timeout: 30000 });
       await pg.locator("#gl[data-valley=ready]").waitFor();
       for (const [id, chapter] of [["destination", "02"], ["cable-car", "03"]]) {

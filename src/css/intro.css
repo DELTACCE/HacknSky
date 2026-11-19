@@ -58,39 +58,6 @@ body.intro-open {
   height: auto;
 }
 
-.intro-skip-btn {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  z-index: 10;
-  padding: 0.5rem 1.1rem;
-  font-family: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #fbf5e7;
-  background: rgba(11, 43, 36, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(251, 245, 231, 0.25);
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, transform 0.15s, border-color 0.2s;
-}
-
-.intro-skip-btn:hover {
-  background: rgba(11, 43, 36, 0.8);
-  color: #c6f04e;
-  border-color: #c6f04e;
-  transform: translateY(-1px);
-}
-
-.intro-skip-btn:focus-visible {
-  outline: 2px solid #c6f04e;
-  outline-offset: 2px;
-}
-
 /* Nav brand logo */
 .nav-brand-logo {
   height: 34px !important;
