@@ -26,9 +26,10 @@ export function initIntro({ onDone } = {}) {
   window.playHackNSkyIntro = () => playIntro();
 }
 
-export function playIntro({ waitForWorld, onExit, onDone } = {}) {
+export async function playIntro({ onFlightEnd, waitForWorld, onExit, onDone } = {}) {
   const introEl = document.getElementById("brand-intro");
   if (!introEl) {
+    await waitForWorld?.();
     onExit?.();
     onDone?.();
     return;
@@ -98,6 +99,7 @@ export function playIntro({ waitForWorld, onExit, onDone } = {}) {
 
     try {
       currentScene = createIntroScene(canvasHost, {
+        onFlightEnd,
         onReady: () => {
           introEl.classList.add("is-playing");
         },

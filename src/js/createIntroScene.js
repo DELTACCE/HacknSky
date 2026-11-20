@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mobile, textureNames, textureUrl } from "./introAssets.js";
 
 // Geometry, shaders and choreography adapted from the supplied hacknsky-intro-3d demo.
 const W = 1600,
@@ -41,9 +42,9 @@ void main(){float m=texture2D(map,vUv).a;if(m<.02)discard;float s=n(vec2(vUv.x*7
 gl_FragColor=vec4(mix(vec3(.35,.78,.64),vec3(1.),k),m*uOp*(.25+.55*k));}`;
 
 /** Owns one intro canvas, including all listeners, GPU resources and animation frames. */
-export function createIntroScene(host, { onReady, onComplete, onFail }) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 760 ? 1.5 : 2));
+export function createIntroScene(host, { onReady, onFlightEnd, onComplete, onFail }) {
+  const renderer = new THREE.WebGLRenderer({ antialias: !mobile, stencil: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.25 : 2));
   renderer.setClearColor(0x000000, 0);
   renderer.domElement.setAttribute("aria-hidden", "true");
   host.appendChild(renderer.domElement);
@@ -97,17 +98,8 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
   manager.onError = fail;
   const loader = new THREE.TextureLoader(manager);
   const tex = {};
-  const names = [
-    ...LETTERS.map((_, i) => `l${i}`),
-    "base",
-    "panel_mask",
-    "wf",
-    "cable",
-    "gondola",
-    "bird",
-  ];
-  names.forEach((name) => {
-    const texture = loader.load(`/assets/brand/${name}.png`, () => {
+  textureNames.forEach((name) => {
+    const texture = loader.load(textureUrl(name), () => {
       if (disposed) texture.dispose();
     });
     texture.minFilter = THREE.LinearFilter;
@@ -119,7 +111,7 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
   const letters = LETTERS.map((letter, i) => {
     const group = new THREE.Group(),
       opacity = { value: 0 },
-      layers = 10;
+      layers = mobile ? 3 : 10;
     for (let k = layers; k >= 0; k--) {
       const mesh = new THREE.Mesh(
         plane(letter.w, letter.h),
@@ -129,7 +121,7 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
           noShine: !!k,
         }),
       );
-      mesh.position.z = -k * 3.4;
+      mesh.position.z = -34 * k / layers;
       mesh.renderOrder = 10 + layers - k;
       group.add(mesh);
     }
@@ -156,13 +148,14 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
       }),
     ),
   );
-  for (let k = 9; k > 0; k--) {
+  const panelLayers = mobile ? 4 : 9;
+  for (let k = panelLayers; k > 0; k--) {
     const mesh = new THREE.Mesh(
       plane(P.w, P.h),
-      material(tex.base, { op: pop, tint: L(0.5, 0.22, k / 9), noShine: true }),
+      material(tex.base, { op: pop, tint: L(0.5, 0.22, k / panelLayers), noShine: true }),
     );
-    mesh.position.z = -k * 3.4;
-    mesh.renderOrder = 30 + 9 - k;
+    mesh.position.z = -30.6 * k / panelLayers;
+    mesh.renderOrder = 30 + panelLayers - k;
     panel.add(mesh);
   }
   const add = (mesh, z, order) => {
@@ -193,18 +186,19 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
     pivotX = G.x + G.ox,
     pivotY = G.y + G.oy;
   panel.add(gondola);
-  for (let k = 7; k >= 0; k--) {
+  const gondolaLayers = mobile ? 2 : 7;
+  for (let k = gondolaLayers; k >= 0; k--) {
     const mesh = new THREE.Mesh(
       plane(G.w, G.h),
       material(tex.gondola, {
         op: gondolaOpacity,
-        tint: k ? L(0.7, 0.35, k / 7) : 1,
+        tint: k ? L(0.7, 0.35, k / gondolaLayers) : 1,
         st: true,
         noShine: !!k,
       }),
     );
-    mesh.position.set(G.x + G.w / 2 - pivotX, -(G.y + G.h / 2 - pivotY), 14 - k * 2.6);
-    mesh.renderOrder = 53 + 7 - k;
+    mesh.position.set(G.x + G.w / 2 - pivotX, -(G.y + G.h / 2 - pivotY), 14 - 18.2 * k / gondolaLayers);
+    mesh.renderOrder = 53 + gondolaLayers - k;
     gondola.add(mesh);
   }
 
@@ -424,6 +418,10 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
       onComplete?.();
       return;
     }
+    if (onFlightEnd && elapsed >= 4.5) {
+      onFlightEnd();
+      onFlightEnd = null;
+    }
     raf = requestAnimationFrame(frame);
   };
   const start = () => {
@@ -435,6 +433,15 @@ export function createIntroScene(host, { onReady, onComplete, onFail }) {
     if (disposed || failed) return;
     loaded = true;
     fit();
+    try {
+      camera.position.z = D;
+      renderer.compile(scene, camera);
+      renderer.render(scene, camera);
+    } catch {
+      fail();
+      return;
+    }
+    elapsed = 0;
     onReady?.();
     start();
   };

@@ -5,7 +5,7 @@ import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 import { $, $$, ROOT, CH, TRACKS, Game, bootT0, show, boot, showError, failWorld, setSquad, pad, track } from "./ui.js";
 import { mountValleyDetails } from "./valley/ValleyDetails.jsx";
 
-export async function startWorld(profile) {
+export async function startWorld(profile, introDone, mobile) {
   show(30, "Loading fonts");
   { const f0 = getComputedStyle(document.body).fontFamily.split(",")[0].trim(); // fonts are part of the loader now, so the lettering never pops in late
     await Promise.race([Promise.all([400, 500, 600, 700, 800].map((w) => document.fonts.load(`${w} 100px ${f0}`))), new Promise((r) => setTimeout(r, 3500))]).catch(() => {}); show(37, "Loading fonts"); }
@@ -967,8 +967,9 @@ export async function startWorld(profile) {
     for (const [o, v] of hidden) o.visible = v;
     // 2) Rehearse the scroll for real: walk the actual page top to bottom, running the same update and draw code as the live loop,
     //    so layout, chapter HUD, captions, falls detail, cabins and every camera angle are already warm on the first real scroll.
+    await introDone;
     if (document.hidden || contextLost) return;
-    const y0 = scrollY, vhNow = innerHeight, maxY = Math.max(0, ROOT.scrollHeight - vhNow), n = clamp(Math.round(maxY / (vhNow * 0.28)), 24, 90), t0 = performance.now();
+    const y0 = scrollY, vhNow = innerHeight, maxY = Math.max(0, ROOT.scrollHeight - vhNow), n = mobile ? 24 : clamp(Math.round(maxY / (vhNow * 0.28)), 24, 90), t0 = performance.now();
     warming = true; intro0 = -1e3; let simT = 0;
     try {
       for (let i = 0; i <= n; i++) {

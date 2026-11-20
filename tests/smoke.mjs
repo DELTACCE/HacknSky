@@ -69,6 +69,32 @@ try {
   assert.equal(await phone.locator("#loadout").isVisible(), false);
   await phone.locator("#gl[data-valley=ready]").waitFor();
   console.log("ok   Mobile intro holds with progress until the valley is ready");
+  await phone.close();
+  const animated = await b.newPage({ isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } });
+  await animated.addInitScript(() => {
+    const timing = window.introTiming = { steps: 0 };
+    new MutationObserver(() => {
+      if (document.querySelector("#brand-intro.is-playing")) timing.play ??= performance.now();
+      if (parseInt(document.querySelector("#bootmsg")?.textContent) >= 30) timing.build ??= performance.now();
+    }).observe(document, { subtree: true, childList: true, attributes: true });
+    const scroll = window.scrollTo;
+    window.scrollTo = (...args) => {
+      if (document.querySelector("#brand-intro.is-playing") && args[1] > 0) {
+        timing.steps++;
+        timing.waiting = document.querySelector("#loadout").classList.contains("waiting");
+        if (!timing.waiting) timing.earlyScroll = true;
+      }
+      return scroll(...args);
+    };
+  });
+  await animated.goto(base, { waitUntil: "domcontentloaded" });
+  await animated.locator("#brand-intro.is-playing #intro-canvas canvas").waitFor();
+  assert(await animated.locator("#intro-canvas canvas").evaluate((c) => c.width <= c.clientWidth * 1.25));
+  await animated.locator("#loadout.gone").waitFor({ state: "attached", timeout: 90000 });
+  const timing = await animated.evaluate(() => window.introTiming);
+  assert(timing.build - timing.play >= 4400, "Mobile valley build interrupted the intro flight");
+  assert(!timing.earlyScroll && timing.steps > 0 && timing.steps <= 24, "Mobile rehearsal ran early or exceeded its budget");
+  console.log(`ok   Mobile build started ${Math.round(timing.build - timing.play)} ms after intro reveal; ${timing.steps} scroll steps`);
 } finally {
   await b?.close();
   await new Promise((resolve) => server.httpServer.close(resolve));
